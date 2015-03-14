@@ -16,6 +16,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:authorities="com.strobelb69.vplan"
+            android:name=".data.VplanProvider" />
     </application>
 
 </manifest>
