@@ -45,7 +45,6 @@ public class TestDb extends AndroidTestCase {
         plan8c.put(VplanContract.Plan.COL_RAUM,"407");
         plan8c.put(VplanContract.Plan.COL_RAUM_NEU, true);
         plan8c.put(VplanContract.Plan.COL_STUNDE,"1");
-        plan8c.put(VplanContract.Plan.COL_STUNDE_NEU,false);
         plan8c.put(VplanContract.Plan.COL_INF,"Test");
         long idplan8c = db.insert(VplanContract.Plan.TABLE_NAME,null,plan8c);
         assertTrue(idplan8c != -1);

@@ -67,7 +67,6 @@ public class VplanContract {
         public static final String TABLE_NAME = PATH_PLAN;
         public static final String COL_KLASSEN_KEY = Klassen.TABLE_NAME + "_id";
         public static final String COL_STUNDE = "stunde";
-        public static final String COL_STUNDE_NEU = "stunde_neu";
         public static final String COL_FACH = "fach";
         public static final String COL_FACH_NEU = "fach_neu";
         public static final String COL_LEHRER = "lehrer";
