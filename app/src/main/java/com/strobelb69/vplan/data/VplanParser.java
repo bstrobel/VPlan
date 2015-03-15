@@ -6,7 +6,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.strobelb69.vplan.R;
 import com.strobelb69.vplan.util.Utils;
 
 import org.jdom2.Document;
@@ -16,8 +15,6 @@ import org.jdom2.input.SAXBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
