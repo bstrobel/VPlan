@@ -3,7 +3,6 @@ package com.strobelb69.vplan.net;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.strobelb69.vplan.R;
@@ -18,7 +17,7 @@ import java.net.URL;
 /**
  * Created by Bernd on 14.03.2015.
  */
-public class VplanRetriever extends AsyncTask<Void, Void, Void> {
+public class VplanRetriever {
     private final VplanParser parser;
     private final String urlStr;
     private final String LT = getClass().getSimpleName();
@@ -31,14 +30,13 @@ public class VplanRetriever extends AsyncTask<Void, Void, Void> {
         cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
-    @Override
-    protected Void doInBackground(Void... voids) {
+    public void retrieveFromNet() {
         InputStream is = null;
         try {
             NetworkInfo ni = cm.getActiveNetworkInfo();
             if (ni == null || !ni.isConnected()) {
                 Log.i(LT, "Not connected to network. Vplan not updated!");
-                return null;
+                return;
             }
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -60,6 +58,5 @@ public class VplanRetriever extends AsyncTask<Void, Void, Void> {
                 }
             }
         }
-        return null;
     }
 }

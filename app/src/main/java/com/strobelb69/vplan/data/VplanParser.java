@@ -45,8 +45,7 @@ public class VplanParser {
             getFreieTage(re.getChild("FreieTage"));
             getKlassen(re.getChild("Klassen"));
         } catch (ParseException | JDOMException | IOException e) {
-            String urlStr = ctx.getResources().getString(R.string.vplanUrl);
-            Log.e(LT,e.getMessage() + " while getting URL " + urlStr + "\nStackTrace:\n" + Utils.getStackTraceString(e));
+            Log.e(LT,e.getMessage() + " while parsing XML \nStackTrace:\n" + Utils.getStackTraceString(e));
         }
     }
 
@@ -93,21 +92,21 @@ public class VplanParser {
                     Element kkz = ku.getChild("KKz");
                     ContentValues cvKurse = new ContentValues();
                     cvKurse.put(VplanContract.Kurse.COL_KLASSEN_KEY,klasseId);
-                    cvKurse.put(VplanContract.Kurse.COL_LEHRER, kkz.getAttributeValue("KLe"));
-                    cvKurse.put(VplanContract.Kurse.COL_KURS,kkz.getValue());
+                    cvKurse.put(VplanContract.Kurse.COL_LEHRER, remNbsp(kkz.getAttributeValue("KLe")));
+                    cvKurse.put(VplanContract.Kurse.COL_KURS, remNbsp(kkz.getValue()));
                     crslv.insert(VplanContract.Kurse.CONTENT_URI,cvKurse);
                 }
                 for (Element std: kl.getChild("Pl").getChildren("Std")) {
                     ContentValues cvPlan = new ContentValues();
                     cvPlan.put(VplanContract.Plan.COL_KLASSEN_KEY,klasseId);
-                    cvPlan.put(VplanContract.Plan.COL_STUNDE,std.getChildText("St"));
-                    cvPlan.put(VplanContract.Plan.COL_FACH,std.getChildText("Fa"));
+                    cvPlan.put(VplanContract.Plan.COL_STUNDE,remNbsp(std.getChildText("St")));
+                    cvPlan.put(VplanContract.Plan.COL_FACH,remNbsp(std.getChildText("Fa")));
                     cvPlan.put(VplanContract.Plan.COL_FACH_NEU,isNeu(std.getChild("Fa"), "FaAe"));
-                    cvPlan.put(VplanContract.Plan.COL_LEHRER,std.getChildText("Le"));
+                    cvPlan.put(VplanContract.Plan.COL_LEHRER,remNbsp(std.getChildText("Le")));
                     cvPlan.put(VplanContract.Plan.COL_LEHRER_NEU,isNeu(std.getChild("Le"), "LeAe"));
-                    cvPlan.put(VplanContract.Plan.COL_RAUM,std.getChildText("Ra"));
+                    cvPlan.put(VplanContract.Plan.COL_RAUM,remNbsp(std.getChildText("Ra")));
                     cvPlan.put(VplanContract.Plan.COL_RAUM_NEU,isNeu(std.getChild("Ra"), "RaAe"));
-                    cvPlan.put(VplanContract.Plan.COL_INF,std.getChildText("If"));
+                    cvPlan.put(VplanContract.Plan.COL_INF,remNbsp(std.getChildText("If")));
                     crslv.insert(VplanContract.Plan.CONTENT_URI, cvPlan);
                 }
             }
@@ -126,6 +125,14 @@ public class VplanParser {
             return new Long(idStr);
         } catch (Exception e) {
             return -1L;
+        }
+    }
+
+    private String remNbsp(String str) {
+        if (str != null && !str.equals("&nbsp;")) {
+            return str;
+        } else {
+            return "";
         }
     }
 }

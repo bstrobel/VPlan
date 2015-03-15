@@ -113,17 +113,20 @@ public class VplanProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case KURSE_FUER_KLASSE:
+            case KURSE_FUER_KLASSE: {
+                String klasseStr = uri.getPathSegments().get(1);
+                String klSelection = VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen.COL_KLASSE + " = ?";
                 c = qbKurseFuerKlasse.query(
                         dbHelper.getReadableDatabase(),
                         projection,
-                        selection,
-                        selectionArgs,
+                        klSelection,
+                        new String[]{klasseStr},
                         null,
                         null,
-                        sortOrder
+                        null
                 );
                 break;
+            }
             case PLAN:
                 c = dbHelper.getReadableDatabase().query(
                         VplanContract.Plan.TABLE_NAME,
@@ -135,17 +138,20 @@ public class VplanProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case PLAN_FUER_KLASSE:
+            case PLAN_FUER_KLASSE: {
+                String klasseStr = uri.getPathSegments().get(1);
+                String klSelection = VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen.COL_KLASSE + " = ?";
                 c = qbPlanFuerKlasse.query(
                         dbHelper.getReadableDatabase(),
                         projection,
-                        selection,
-                        selectionArgs,
+                        klSelection,
+                        new String[]{klasseStr},
                         null,
                         null,
                         sortOrder
                 );
                 break;
+            }
             default:   throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
         c.setNotificationUri(getContext().getContentResolver(),uri);
