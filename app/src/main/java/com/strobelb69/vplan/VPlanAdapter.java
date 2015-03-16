@@ -40,6 +40,7 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
     @Override
     public View newView(Context ctx, Cursor cursor, ViewGroup vg) {
         View v = LayoutInflater.from(ctx).inflate(R.layout.list_item_vplan,vg,false);
+        v.setTag(new ViewHolder(v));
         return v;
     }
 
@@ -54,21 +55,28 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
         } catch (NumberFormatException e) {
             Log.w(LT,"String for stunde cannot be parsed to int: "+stunde);
         }
-        String line = String.format("%s: Fach %s, Lehrer %s, Raum %s - %s",
-                stunde,
-                c.getString(COL_FACH),
-                c.getString(COL_LEHRER),
-                c.getString(COL_RAUM),
-                c.getString(COL_INF));
 
-        TextView tv = (TextView) v;
-        tv.setText(line);
-        if (c.getInt(COL_FACH_NEU) == 1 ||
-                c.getInt(COL_LEHRER_NEU) == 1 ||
-                c.getInt(COL_RAUM_NEU) == 1) {
-            tv.setTextColor(Color.RED);
+        ViewHolder vh = (ViewHolder) v.getTag();
+        vh.tvStunde.setText(stunde);
+        vh.tvFach.setText(c.getString(COL_FACH));
+        vh.tvRaum.setText(c.getString(COL_RAUM));
+        vh.tvLehrer.setText(c.getString(COL_LEHRER));
+        vh.tvInfo.setText(c.getString(COL_INF));
+
+        if (c.getInt(COL_FACH_NEU) == 1) {
+            vh.tvFach.setTextColor(Color.RED);
         } else {
-            tv.setTextColor(Color.BLACK);
+            vh.tvFach.setTextColor(Color.BLACK);
+        }
+        if (c.getInt(COL_LEHRER_NEU) == 1) {
+            vh.tvLehrer.setTextColor(Color.RED);
+        } else {
+            vh.tvLehrer.setTextColor(Color.BLACK);
+        }
+        if (c.getInt(COL_RAUM_NEU) == 1) {
+            vh.tvRaum.setTextColor(Color.RED);
+        } else {
+            vh.tvRaum.setTextColor(Color.BLACK);
         }
     }
 
@@ -76,6 +84,22 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (key != null && key.equals(keyKonprDoppelStd)) {
             isKeyKomprDoppelStd = prefs.getBoolean(keyKonprDoppelStd,isKeyKomprDoppelStd);
+        }
+    }
+
+    public static class ViewHolder {
+        TextView tvStunde;
+        TextView tvFach;
+        TextView tvRaum;
+        TextView tvLehrer;
+        TextView tvInfo;
+
+        public ViewHolder(View v) {
+            tvStunde = (TextView) v.findViewById(R.id.list_item_vplan_stunde);
+            tvFach = (TextView) v.findViewById(R.id.list_item_vplan_fach);
+            tvRaum = (TextView) v.findViewById(R.id.list_item_vplan_raum);
+            tvLehrer = (TextView) v.findViewById(R.id.list_item_vplan_lehrer);
+            tvInfo = (TextView) v.findViewById(R.id.list_item_vplan_info);
         }
     }
 }
