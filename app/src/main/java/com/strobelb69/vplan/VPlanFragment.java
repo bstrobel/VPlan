@@ -1,11 +1,13 @@
 package com.strobelb69.vplan;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -23,7 +25,7 @@ import com.strobelb69.vplan.net.VplanRetriever;
 /**
  * Created by Bernd on 15.03.2015.
  */
-public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String[] PROJECTION_PLAN = new String[] {
             VplanContract.Plan.TABLE_NAME+"."+VplanContract.Plan._ID, // this needs the the Loader
@@ -36,13 +38,19 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
             VplanContract.Plan.COL_RAUM_NEU,
             VplanContract.Plan.COL_INF
     };
-    private int THIS_LOADER = 0;
+    private final int THIS_LOADER = 0;
+    private static String keyKlasse;
+    private static String keyKomprDoppelStd;
+    private Uri uriKlasse;
     VPlanAdapter vplanAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        keyKlasse = getString(R.string.prefKeyKlasse);
+        keyKomprDoppelStd = getString(R.string.prefKeyDoppelstunde);
+        setUriKlasse(PreferenceManager.getDefaultSharedPreferences(getActivity()));
     }
 
     @Override
@@ -55,16 +63,24 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            new UpdatePlan().execute();
+            new UpdatePlan().execute(this);
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private class UpdatePlan extends AsyncTask <Void, Void, Void> {
+    private class UpdatePlan extends AsyncTask<LoaderManager.LoaderCallbacks<Cursor>, Void, Void> {
+        LoaderManager.LoaderCallbacks<Cursor> lcb;
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Void doInBackground(LoaderManager.LoaderCallbacks<Cursor>... lcb) {
+            this.lcb = lcb[0];
             new VplanRetriever(getActivity()).retrieveFromNet();
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            getLoaderManager().restartLoader(THIS_LOADER, null, lcb);
         }
     }
 
@@ -72,7 +88,7 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         vplanAdapter = new VPlanAdapter(getActivity(), null, 0);
 
-        View rv = inflater.inflate(R.layout.vplan_fragment,container,false);
+        View rv = inflater.inflate(R.layout.vplan_fragment, container, false);
         ListView lv = (ListView) rv.findViewById(R.id.listview_vplan);
         lv.setAdapter(vplanAdapter);
         return rv;
@@ -81,13 +97,34 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         getLoaderManager().restartLoader(THIS_LOADER, null, this);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        prefs.registerOnSharedPreferenceChangeListener(this);
         super.onActivityCreated(savedInstanceState);
     }
 
     @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        // Check for isAdded() is done to avoid "java.lang.IllegalStateException: Fragment VPlanFragment{19a95b71} not attached to Activity"
+        if (isAdded() && (key.equals(keyKlasse) || key.equals(keyKomprDoppelStd))) {
+            setUriKlasse(prefs);
+            getLoaderManager().restartLoader(THIS_LOADER, null, this);
+        }
+    }
+
+    private void setUriKlasse(SharedPreferences prefs) {
+        String selectedKlasse = prefs.getString(keyKlasse,"");
+        Boolean isKomprDoppelStd = prefs.getBoolean(keyKomprDoppelStd,false);
+        if (isKomprDoppelStd) {
+            uriKlasse = VplanContract.Plan.CONTENT_URI.buildUpon().appendPath(selectedKlasse).appendPath(VplanContract.PATH_PART_KOMP_DOPPELSTD).build();
+        } else {
+            uriKlasse = VplanContract.Plan.CONTENT_URI.buildUpon().appendPath(selectedKlasse).build();
+        }
+
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uriPlan8C = VplanContract.Plan.CONTENT_URI.buildUpon().appendPath("8c").build();
-        return new CursorLoader(getActivity(),uriPlan8C,PROJECTION_PLAN,null,null,null);
+        return new CursorLoader(getActivity(),uriKlasse,PROJECTION_PLAN,null,null,null);
     }
 
     @Override

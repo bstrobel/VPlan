@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">VPlan</string>
-    <string name="action_settings">Settings</string>
-    <string name="action_refresh" translatable="false">Refresh</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_refresh">Aktualisieren</string>
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
+    <string name="prefTitleKlasse">Klasse</string>
+    <string name="prefKeyKlasse" translatable="false">klasse</string>
+    <string name="prefTitleDoppelstunde">Doppelstunden zusammenfassen</string>
+    <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
 </resources>

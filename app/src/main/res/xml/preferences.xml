@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:title="@string/prefTitleKlasse"
+        android:key="@string/prefKeyKlasse"/>
+    <SwitchPreference
+        android:title="@string/prefTitleDoppelstunde"
+        android:key="@string/prefKeyDoppelstunde"/>
+</PreferenceScreen>

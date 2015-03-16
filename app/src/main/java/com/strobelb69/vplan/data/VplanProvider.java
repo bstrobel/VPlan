@@ -22,6 +22,7 @@ public class VplanProvider extends ContentProvider {
     public static final int KURSE_FUER_KLASSE = 500;
     public static final int PLAN = 600;
     public static final int PLAN_FUER_KLASSE = 700;
+    public static final int ZUSATZINFO = 800;
 
     private VplanDbHelper dbHelper;
     private static final SQLiteQueryBuilder qbKurseFuerKlasse;
@@ -56,6 +57,8 @@ public class VplanProvider extends ContentProvider {
         m.addURI(auth,VplanContract.PATH_KURSE + "/*",KURSE_FUER_KLASSE);
         m.addURI(auth,VplanContract.PATH_PLAN,PLAN);
         m.addURI(auth,VplanContract.PATH_PLAN + "/*",PLAN_FUER_KLASSE);
+        m.addURI(auth,VplanContract.PATH_PLAN + "/*/*",PLAN_FUER_KLASSE);
+        m.addURI(auth,VplanContract.PATH_ZUSATZINFO,ZUSATZINFO);
         return m;
     }
 
@@ -140,7 +143,14 @@ public class VplanProvider extends ContentProvider {
                 break;
             case PLAN_FUER_KLASSE: {
                 String klasseStr = uri.getPathSegments().get(1);
+                String komprDopplStd = null;
+                if (uri.getPathSegments().size() > 2) {
+                    komprDopplStd = uri.getPathSegments().get(2);
+                }
                 String klSelection = VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen.COL_KLASSE + " = ?";
+                if (komprDopplStd != null && komprDopplStd.equals(VplanContract.PATH_PART_KOMP_DOPPELSTD)) {
+                    klSelection = klSelection + " AND " + VplanContract.Plan.COL_STUNDE + " NOT IN (\"2\",\"4\",\"6\",\"8\")";
+                }
                 c = qbPlanFuerKlasse.query(
                         dbHelper.getReadableDatabase(),
                         projection,
@@ -152,6 +162,17 @@ public class VplanProvider extends ContentProvider {
                 );
                 break;
             }
+            case ZUSATZINFO:
+                c = dbHelper.getReadableDatabase().query(
+                        VplanContract.Zusatzinfo.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
             default:   throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
         c.setNotificationUri(getContext().getContentResolver(),uri);
@@ -169,6 +190,7 @@ public class VplanProvider extends ContentProvider {
             case KURSE_FUER_KLASSE: return VplanContract.Kurse.CONTENT_ITEM_TYPE;
             case PLAN: return VplanContract.Plan.CONTENT_TYPE;
             case PLAN_FUER_KLASSE: return VplanContract.Plan.CONTENT_ITEM_TYPE;
+            case ZUSATZINFO: return VplanContract.Zusatzinfo.CONTENT_TYPE;
             default: throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
     }
@@ -223,6 +245,15 @@ public class VplanProvider extends ContentProvider {
                 }
                 break;
             }
+            case ZUSATZINFO: {
+                long id = db.insert(VplanContract.Zusatzinfo.TABLE_NAME,null,values);
+                if (id > 0) {
+                    u = ContentUris.withAppendedId(VplanContract.Zusatzinfo.CONTENT_URI,id);
+                } else {
+                    throw new SQLException("Failed to insert uri: " + uri);
+                }
+                break;
+            }
             default: throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
         return u;
@@ -237,6 +268,7 @@ public class VplanProvider extends ContentProvider {
             case KLASSEN: return db.delete(VplanContract.Klassen.TABLE_NAME,selection,selectionArgs);
             case KURSE: return db.delete(VplanContract.Kurse.TABLE_NAME,selection,selectionArgs);
             case PLAN: return db.delete(VplanContract.Plan.TABLE_NAME,selection,selectionArgs);
+            case ZUSATZINFO: return db.delete(VplanContract.Zusatzinfo.TABLE_NAME,selection,selectionArgs);
             default: throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
     }

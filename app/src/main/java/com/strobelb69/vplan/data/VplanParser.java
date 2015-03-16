@@ -3,6 +3,7 @@ package com.strobelb69.vplan.data;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -41,6 +42,7 @@ public class VplanParser {
             getKopf(re.getChild("Kopf"));
             getFreieTage(re.getChild("FreieTage"));
             getKlassen(re.getChild("Klassen"));
+            getZusatzinfo(re.getChild("ZusatzInfo"));
         } catch (ParseException | JDOMException | IOException e) {
             Log.e(LT,e.getMessage() + " while parsing XML \nStackTrace:\n" + Utils.getStackTraceString(e));
         }
@@ -104,10 +106,31 @@ public class VplanParser {
                     cvPlan.put(VplanContract.Plan.COL_RAUM,remNbsp(std.getChildText("Ra")));
                     cvPlan.put(VplanContract.Plan.COL_RAUM_NEU,isNeu(std.getChild("Ra"), "RaAe"));
                     cvPlan.put(VplanContract.Plan.COL_INF,remNbsp(std.getChildText("If")));
+                    if (std.getChild("Ku2") != null) {
+                        Cursor c = crslv.query(VplanContract.Kurse.CONTENT_URI,
+                                new String[]{VplanContract.Kurse._ID},
+                                VplanContract.Kurse.COL_KURS + " = ?",
+                                new String[]{std.getChildText("Ku2")},
+                                null);
+                        if (c.getCount() > 0) {
+                            c.moveToFirst();
+                            cvPlan.put(VplanContract.Plan.COL_KURSE_KEY,c.getInt(0));
+                        }
+                        c.close();
+                    }
                     crslv.insert(VplanContract.Plan.CONTENT_URI, cvPlan);
                 }
             }
 
+        }
+    }
+
+    private void getZusatzinfo(Element zusatzinfo) throws ParseException {
+        crslv.delete(VplanContract.Zusatzinfo.CONTENT_URI, null, null);
+        ContentValues cv = new ContentValues();
+        for (Element zizeile: zusatzinfo.getChildren("ZiZeile")) {
+            cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE, zizeile.getText());
+            crslv.insert(VplanContract.Zusatzinfo.CONTENT_URI, cv);
         }
     }
 

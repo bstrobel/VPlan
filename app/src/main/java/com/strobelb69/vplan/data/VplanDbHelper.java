@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Bernd on 14.03.2015.
  */
 public class VplanDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "vplan.db";
 
     public VplanDbHelper(Context context) {
@@ -65,12 +65,20 @@ public class VplanDbHelper extends SQLiteOpenHelper {
                 VplanContract.Plan.COL_FACH + TEXT + "," +
                 VplanContract.Plan.COL_FACH_NEU + BOOLEAN_NOT_NULL + "," +
                 VplanContract.Plan.COL_LEHRER + TEXT + "," +
+                VplanContract.Plan.COL_KURSE_KEY + INTEGER + "," +
                 VplanContract.Plan.COL_LEHRER_NEU + BOOLEAN_NOT_NULL + "," +
                 VplanContract.Plan.COL_RAUM + TEXT + "," +
                 VplanContract.Plan.COL_RAUM_NEU + BOOLEAN_NOT_NULL + "," +
                 VplanContract.Plan.COL_INF + TEXT + "," +
                 " FOREIGN KEY (" + VplanContract.Plan.COL_KLASSEN_KEY + ") REFERENCES " +
-                VplanContract.Klassen.TABLE_NAME + " (" + VplanContract.Klassen._ID + ") " +
+                VplanContract.Klassen.TABLE_NAME + " (" + VplanContract.Klassen._ID + "), " +
+                " FOREIGN KEY (" + VplanContract.Plan.COL_KURSE_KEY + ") REFERENCES " +
+                VplanContract.Kurse.TABLE_NAME + " (" + VplanContract.Kurse._ID + ") " +
+                ")";
+
+        final String SQL_CREATE_ZUSATZINFO = CREATE_TABLE + VplanContract.Zusatzinfo.TABLE_NAME + "(" +
+                VplanContract.Zusatzinfo._ID + INTEGER_PRIMARY_KEY + "," +
+                VplanContract.Zusatzinfo.COL_ZIZEILE + TEXT_NOT_NULL +
                 ")";
 
         db.execSQL(SQL_CREATE_VPLANSTATE);
@@ -78,10 +86,12 @@ public class VplanDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_KLASSEN);
         db.execSQL(SQL_CREATE_KURSE);
         db.execSQL(SQL_CREATE_PLAN);
+        db.execSQL(SQL_CREATE_ZUSATZINFO);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + VplanContract.Zusatzinfo.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + VplanContract.Kopf.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + VplanContract.FreieTage.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + VplanContract.Plan.TABLE_NAME);

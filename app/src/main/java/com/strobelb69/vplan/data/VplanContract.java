@@ -17,6 +17,8 @@ public class VplanContract {
     public static final String PATH_KURSE = "kurse";
     public static final String PATH_KLASSEN = "klassen";
     public static final String PATH_PLAN = "plan";
+    public static final String PATH_PART_KOMP_DOPPELSTD = "komprDplStd";
+    public static final String PATH_ZUSATZINFO = "zusatzinfo";
 
     public static final class Kopf implements BaseColumns {
         // content provider stuff
@@ -69,10 +71,21 @@ public class VplanContract {
         public static final String COL_STUNDE = "stunde";
         public static final String COL_FACH = "fach";
         public static final String COL_FACH_NEU = "fach_neu";
+        public static final String COL_KURSE_KEY = Kurse.TABLE_NAME + "_id";
         public static final String COL_LEHRER = "lehrer";
         public static final String COL_LEHRER_NEU = "lehrer_neu";
         public static final String COL_RAUM = "raum";
         public static final String COL_RAUM_NEU = "raum_neu";
         public static final String COL_INF = "inf";
+    }
+
+    public static final class Zusatzinfo implements BaseColumns {
+        // content provider stuff
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ZUSATZINFO).build();
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ZUSATZINFO;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ZUSATZINFO;
+        // actual contract fields and names
+        public static final String TABLE_NAME = PATH_ZUSATZINFO;
+        public static final String COL_ZIZEILE= "zizeile";
     }
 }
