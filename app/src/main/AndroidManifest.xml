@@ -22,7 +22,7 @@
             android:label="Einstellungen"
             android:parentActivityName=".MainActivity"/>
         <provider
-            android:authorities="com.strobelb69.vplan"
+            android:authorities="@string/vplan_provider_authority"
             android:name=".data.VplanProvider" />
     </application>
 

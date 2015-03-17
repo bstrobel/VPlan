@@ -7,4 +7,5 @@
     <string name="prefKeyKlasse" translatable="false">klasse</string>
     <string name="prefTitleDoppelstunde">Doppelstunden zusammenfassen</string>
     <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
+    <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
 </resources>

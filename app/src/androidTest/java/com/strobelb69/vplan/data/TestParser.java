@@ -50,6 +50,9 @@ public class TestParser extends AndroidTestCase {
         Cursor crsKurse = cntrslv.query(VplanContract.Kurse.CONTENT_URI,null,null,null,null);
         assertTrue(crsKurse.isBeforeFirst());
         assertTrue("Tabelle kurse nicht gefüllt!", crsKurse.getCount() > 0);
+        while(crsKurse.moveToNext()) {
+            Log.d("TESTPARSER",String.format("_ID=%d KLASSEN_ID=%d KURS=%s",crsKurse.getInt(0),crsKurse.getInt(1),crsKurse.getString(2)));
+        }
         crsKurse.close();
 
         Cursor crsPlan = cntrslv.query(VplanContract.Plan.CONTENT_URI,null,null,null,null);

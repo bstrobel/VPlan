@@ -1,14 +1,19 @@
 package com.strobelb69.vplan.data;
 
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+
+import java.util.ArrayList;
 
 /**
  * Created by Bernd on 14.03.2015.
@@ -201,57 +206,33 @@ public class VplanProvider extends ContentProvider {
         Uri u;
         switch(uriMatcher.match(uri)) {
             case KOPF: {
-                long id = db.insert(VplanContract.Kopf.TABLE_NAME,null,values);
-                if (id > 0) {
-                    u = ContentUris.withAppendedId(VplanContract.Kopf.CONTENT_URI,id);
-                } else {
-                    throw new SQLException("Failed to insert uri: " + uri);
-                }
+                long id = db.insertOrThrow(VplanContract.Kopf.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.Kopf.CONTENT_URI,id);
                 break;
             }
             case FREIETAGE: {
-                long id = db.insert(VplanContract.FreieTage.TABLE_NAME,null,values);
-                if (id > 0) {
-                    u = ContentUris.withAppendedId(VplanContract.FreieTage.CONTENT_URI,id);
-                } else {
-                    throw new SQLException("Failed to insert uri: " + uri);
-                }
+                long id = db.insertOrThrow(VplanContract.FreieTage.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.FreieTage.CONTENT_URI,id);
                 break;
             }
             case KLASSEN: {
-                long id = db.insert(VplanContract.Klassen.TABLE_NAME,null,values);
-                if (id > 0) {
-                    u = ContentUris.withAppendedId(VplanContract.Klassen.CONTENT_URI,id);
-                } else {
-                    throw new SQLException("Failed to insert uri: " + uri);
-                }
+                long id = db.insertOrThrow(VplanContract.Klassen.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.Klassen.CONTENT_URI,id);
                 break;
             }
             case KURSE: {
-                long id = db.insert(VplanContract.Kurse.TABLE_NAME,null,values);
-                if (id > 0) {
-                    u = ContentUris.withAppendedId(VplanContract.Kurse.CONTENT_URI,id);
-                } else {
-                    throw new SQLException("Failed to insert uri: " + uri);
-                }
+                long id = db.insertOrThrow(VplanContract.Kurse.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.Kurse.CONTENT_URI,id);
                 break;
             }
             case PLAN: {
-                long id = db.insert(VplanContract.Plan.TABLE_NAME,null,values);
-                if (id > 0) {
-                    u = ContentUris.withAppendedId(VplanContract.Plan.CONTENT_URI,id);
-                } else {
-                    throw new SQLException("Failed to insert uri: " + uri);
-                }
+                long id = db.insertOrThrow(VplanContract.Plan.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.Plan.CONTENT_URI,id);
                 break;
             }
             case ZUSATZINFO: {
-                long id = db.insert(VplanContract.Zusatzinfo.TABLE_NAME,null,values);
-                if (id > 0) {
-                    u = ContentUris.withAppendedId(VplanContract.Zusatzinfo.CONTENT_URI,id);
-                } else {
-                    throw new SQLException("Failed to insert uri: " + uri);
-                }
+                long id = db.insertOrThrow(VplanContract.Zusatzinfo.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.Zusatzinfo.CONTENT_URI,id);
                 break;
             }
             default: throw new UnsupportedOperationException("Unsupported uri: " + uri);
@@ -276,5 +257,15 @@ public class VplanProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         throw new UnsupportedOperationException("Updates not implemented!");
+    }
+
+    @Override
+    public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
+        return super.applyBatch(operations);
+    }
+
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        return super.bulkInsert(uri, values);
     }
 }

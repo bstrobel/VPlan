@@ -3,4 +3,11 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:id="@+id/container">
 
+    <fragment
+        android:id="@+id/vplan_settings_fragment"
+        android:name="com.strobelb69.vplan.SettingsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+/>
+
 </FrameLayout>
