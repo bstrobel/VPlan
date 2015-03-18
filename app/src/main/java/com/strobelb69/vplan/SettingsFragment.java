@@ -46,7 +46,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         // Call the listener to set the ListPreference to the last selection.
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(prefKlasse.getContext());
-        String currKlasse = prefs.getString(prefKlasse.getKey(),klassen.get(0));
+        String currKlasse = prefs.getString(prefKlasse.getKey(),getString(R.string.prefDefKlasse));
         onPreferenceChange(prefKlasse, currKlasse);
     }
 

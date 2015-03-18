@@ -5,7 +5,9 @@
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
     <string name="prefTitleKlasse">Klasse</string>
     <string name="prefKeyKlasse" translatable="false">klasse</string>
+    <string name="prefDefKlasse" translatable="false">5a</string>
     <string name="prefTitleDoppelstunde">Doppelstunden zusammenfassen</string>
     <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
+    <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
 </resources>

@@ -83,7 +83,7 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (key != null && key.equals(keyKonprDoppelStd)) {
-            isKeyKomprDoppelStd = prefs.getBoolean(keyKonprDoppelStd,isKeyKomprDoppelStd);
+            isKeyKomprDoppelStd = prefs.getBoolean(keyKonprDoppelStd,MainActivity.prefDefDoppelstunde);
         }
     }
 

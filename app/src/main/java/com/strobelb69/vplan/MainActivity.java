@@ -3,7 +3,6 @@ package com.strobelb69.vplan;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
@@ -17,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.strobelb69.vplan.data.VplanContract;
+import com.strobelb69.vplan.sync.VplanSyncAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,6 +26,8 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
     public final String LT=getClass().getSimpleName();
     public static final String VPFMT_TAG = "VPFMT_TAG";
     public static final int TITLE_LOADER = 0;
+    public static final int PLAN_LIST_LOADER = TITLE_LOADER+1;
+    public static boolean prefDefDoppelstunde=true;
     private String currKlasse;
     private String klasseKey;
 
@@ -41,9 +43,10 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
         klasseKey = getString(R.string.prefKeyKlasse);
-        currKlasse = prefs.getString(klasseKey,"");
+        currKlasse = prefs.getString(klasseKey,getString(R.string.prefDefKlasse));
 
         getSupportLoaderManager().initLoader(TITLE_LOADER,null,this);
+        VplanSyncAdapter.initializeSyncAdapter(this);
     }
 
 
@@ -73,7 +76,7 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (klasseKey.equals(key)) {
-            currKlasse = prefs.getString(key,"");
+            currKlasse = prefs.getString(key,getString(R.string.prefDefKlasse));
             getSupportLoaderManager().restartLoader(TITLE_LOADER, null, this);
         }
     }

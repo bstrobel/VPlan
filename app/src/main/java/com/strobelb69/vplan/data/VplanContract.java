@@ -17,8 +17,10 @@ public class VplanContract {
     public static final String PATH_KURSE = "kurse";
     public static final String PATH_KLASSEN = "klassen";
     public static final String PATH_PLAN = "plan";
-    public static final String PATH_PART_KOMP_DOPPELSTD = "komprDplStd";
     public static final String PATH_ZUSATZINFO = "zusatzinfo";
+    public static final String PARAM_KEY_KOMP_DOPPELSTD = "komprDplStd";
+    public static final String PARAM_KEY_KLASSE = "klasse";
+    public static final String PARAM_KEY_KURS = "kurs";
 
     public static final class Kopf implements BaseColumns {
         // content provider stuff

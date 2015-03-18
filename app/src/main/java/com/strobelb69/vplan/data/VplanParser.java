@@ -23,8 +23,10 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by Bernd on 14.03.2015.
@@ -104,7 +106,6 @@ public class VplanParser {
             cpob.withValues(cv);
             ops.add(cpob.build());
         }
-        return;
     }
 
     private long freieTageParser(String z) throws ParseException {
@@ -123,19 +124,22 @@ public class VplanParser {
             cpob.withValues(cvKlassen);
             ops.add(cpob.build());
             int j=ops.size()-1;
+            Map<String,Integer> kursMap = new HashMap<>();
                 for (Element ku: kl.getChild("Kurse").getChildren("Ku")) {
                     ContentProviderOperation.Builder cpobK = ContentProviderOperation.newInsert(VplanContract.Kurse.CONTENT_URI);
                     Element kkz = ku.getChild("KKz");
+                    String kurs = remNbsp(kkz.getValue());
                     ContentValues cvKurse = new ContentValues();
                     cvKurse.put(VplanContract.Kurse.COL_KLASSEN_KEY,0);
                     cvKurse.put(VplanContract.Kurse.COL_LEHRER, remNbsp(kkz.getAttributeValue("KLe")));
-                    cvKurse.put(VplanContract.Kurse.COL_KURS, remNbsp(kkz.getValue()));
+                    cvKurse.put(VplanContract.Kurse.COL_KURS, kurs);
                     cpobK.withValues(cvKurse);
                     cpobK.withValueBackReference(VplanContract.Kurse.COL_KLASSEN_KEY, j);
                     ops.add(cpobK.build());
+                    kursMap.put(kurs,ops.size()-1);
                 }
                 for (Element std: kl.getChild("Pl").getChildren("Std")) {
-                    boolean hasKu2 = std.getChild("Ku2") != null;
+                    String ku2 = std.getChildText("Ku2");
                     ContentProviderOperation.Builder cpobP = ContentProviderOperation.newInsert(VplanContract.Plan.CONTENT_URI);
                     ContentValues cvPlan = new ContentValues();
                     cvPlan.put(VplanContract.Plan.COL_KLASSEN_KEY,0);
@@ -147,14 +151,14 @@ public class VplanParser {
                     cvPlan.put(VplanContract.Plan.COL_RAUM,remNbsp(std.getChildText("Ra")));
                     cvPlan.put(VplanContract.Plan.COL_RAUM_NEU,isNeu(std.getChild("Ra"), "RaAe"));
                     cvPlan.put(VplanContract.Plan.COL_INF,remNbsp(std.getChildText("If")));
-                    if (hasKu2) {
+                    if (ku2!=null) {
                             cvPlan.put(VplanContract.Plan.COL_KURSE_KEY, 0);
                     }
                     cpobP.withValues(cvPlan);
                     cpobP.withValueBackReference(VplanContract.Plan.COL_KLASSEN_KEY, j);
-                    if (hasKu2) {
-                        // TODO: needs to be replaced with SelectionBackReference oder wir muess eine HashMap mit j und dem Kurs aufbauen!
-//                        cpobP.withValueBackReference(VplanContract.Plan.COL_KURSE_KEY, j);
+                    if (ku2!=null) {
+                        // TODO: needs to be tested!
+                        cpobP.withValueBackReference(VplanContract.Plan.COL_KURSE_KEY, kursMap.get(ku2));
                     }
                     ops.add(cpobP.build());
                 }
@@ -174,7 +178,6 @@ public class VplanParser {
             cpobZ.withValues(cv);
             ops.add(cpobZ.build());
         }
-        return ;
     }
 
     private boolean isNeu(Element el, String attrName) {

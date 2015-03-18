@@ -1,19 +1,15 @@
 package com.strobelb69.vplan.data;
 
 import android.content.ContentProvider;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Bernd on 14.03.2015.
@@ -24,18 +20,22 @@ public class VplanProvider extends ContentProvider {
     public static final int FREIETAGE = 200;
     public static final int KLASSEN = 300;
     public static final int KURSE = 400;
-    public static final int KURSE_FUER_KLASSE = 500;
     public static final int PLAN = 600;
-    public static final int PLAN_FUER_KLASSE = 700;
     public static final int ZUSATZINFO = 800;
 
     private VplanDbHelper dbHelper;
-    private static final SQLiteQueryBuilder qbKurseFuerKlasse;
+    private static final SQLiteQueryBuilder qbPlanFuerKlasseUndKurse;
     private static final SQLiteQueryBuilder qbPlanFuerKlasse;
+    private static final SQLiteQueryBuilder qbKurseFuerKlasse;
     static {
-        qbKurseFuerKlasse = new SQLiteQueryBuilder();
-        qbKurseFuerKlasse.setTables(
-                VplanContract.Kurse.TABLE_NAME + " INNER JOIN " +
+        qbPlanFuerKlasseUndKurse = new SQLiteQueryBuilder();
+        qbPlanFuerKlasseUndKurse.setTables(
+                VplanContract.Plan.TABLE_NAME + " INNER JOIN " +
+                        VplanContract.Klassen.TABLE_NAME + " ON " +
+                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KLASSEN_KEY +
+                        " = " +
+                        VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID + "AND" +
+                        VplanContract.Kurse.TABLE_NAME + " INNER JOIN " +
                         VplanContract.Klassen.TABLE_NAME + " ON " +
                         VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse.COL_KLASSEN_KEY +
                         " = " +
@@ -49,6 +49,14 @@ public class VplanProvider extends ContentProvider {
                         " = " +
                         VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID
         );
+        qbKurseFuerKlasse = new SQLiteQueryBuilder();
+        qbKurseFuerKlasse.setTables(
+                VplanContract.Kurse.TABLE_NAME + " INNER JOIN " +
+                        VplanContract.Klassen.TABLE_NAME + " ON " +
+                        VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse.COL_KLASSEN_KEY +
+                        " = " +
+                        VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID
+        );
     }
 
     private static final UriMatcher uriMatcher = buildUriMatcher();
@@ -59,10 +67,7 @@ public class VplanProvider extends ContentProvider {
         m.addURI(auth,VplanContract.PATH_FREIETAGE,FREIETAGE);
         m.addURI(auth,VplanContract.PATH_KLASSEN,KLASSEN);
         m.addURI(auth,VplanContract.PATH_KURSE,KURSE);
-        m.addURI(auth,VplanContract.PATH_KURSE + "/*",KURSE_FUER_KLASSE);
         m.addURI(auth,VplanContract.PATH_PLAN,PLAN);
-        m.addURI(auth,VplanContract.PATH_PLAN + "/*",PLAN_FUER_KLASSE);
-        m.addURI(auth,VplanContract.PATH_PLAN + "/*/*",PLAN_FUER_KLASSE);
         m.addURI(auth,VplanContract.PATH_ZUSATZINFO,ZUSATZINFO);
         return m;
     }
@@ -110,61 +115,100 @@ public class VplanProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case KURSE:
-                c = dbHelper.getReadableDatabase().query(
-                        VplanContract.Kurse.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            case KURSE_FUER_KLASSE: {
-                String klasseStr = uri.getPathSegments().get(1);
-                String klSelection = VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen.COL_KLASSE + " = ?";
-                c = qbKurseFuerKlasse.query(
-                        dbHelper.getReadableDatabase(),
-                        projection,
-                        klSelection,
-                        new String[]{klasseStr},
-                        null,
-                        null,
-                        null
-                );
+            case KURSE: {
+                String klasseStr = uri.getQueryParameter(VplanContract.PARAM_KEY_KLASSE);
+                StringBuilder sbSelection = new StringBuilder();
+                sbSelection.append(VplanContract.Klassen.TABLE_NAME)
+                        .append(".")
+                        .append(VplanContract.Klassen.COL_KLASSE)
+                        .append(" = ?");
+                if (klasseStr == null) {
+                    c = dbHelper.getReadableDatabase().query(
+                            VplanContract.Kurse.TABLE_NAME,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            null,
+                            null,
+                            sortOrder
+                    );
+                } else {
+                    c = qbKurseFuerKlasse.query(
+                            dbHelper.getReadableDatabase(),
+                            projection,
+                            sbSelection.toString(),
+                            new String[]{klasseStr},
+                            null,
+                            null,
+                            sortOrder
+                    );
+                }
                 break;
             }
-            case PLAN:
-                c = dbHelper.getReadableDatabase().query(
-                        VplanContract.Plan.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            case PLAN_FUER_KLASSE: {
-                String klasseStr = uri.getPathSegments().get(1);
-                String komprDopplStd = null;
-                if (uri.getPathSegments().size() > 2) {
-                    komprDopplStd = uri.getPathSegments().get(2);
+            case PLAN: {
+                String klasseStr = uri.getQueryParameter(VplanContract.PARAM_KEY_KLASSE);
+                List<String> kurse = uri.getQueryParameters(VplanContract.PARAM_KEY_KURS);
+                String komprDopplStd = uri.getQueryParameter(VplanContract.PARAM_KEY_KOMP_DOPPELSTD);
+                StringBuilder sbSelection = new StringBuilder();
+                sbSelection.append(VplanContract.Klassen.TABLE_NAME)
+                        .append(".")
+                        .append(VplanContract.Klassen.COL_KLASSE)
+                        .append(" = ?");
+                if (komprDopplStd != null && komprDopplStd.toLowerCase().equals("true")) {
+                    sbSelection
+                            .append(" AND ")
+                            .append(VplanContract.Plan.COL_STUNDE)
+                            .append(" NOT IN (\"2\",\"4\",\"6\",\"8\")");
                 }
-                String klSelection = VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen.COL_KLASSE + " = ?";
-                if (komprDopplStd != null && komprDopplStd.equals(VplanContract.PATH_PART_KOMP_DOPPELSTD)) {
-                    klSelection = klSelection + " AND " + VplanContract.Plan.COL_STUNDE + " NOT IN (\"2\",\"4\",\"6\",\"8\")";
+                if (klasseStr == null) {
+                    c = dbHelper.getReadableDatabase().query(
+                            VplanContract.Plan.TABLE_NAME,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            null,
+                            null,
+                            sortOrder
+                    );
+                } else if (kurse == null || kurse.size() == 0) {
+                    c = qbPlanFuerKlasse.query(
+                            dbHelper.getReadableDatabase(),
+                            projection,
+                            sbSelection.toString(),
+                            new String[]{klasseStr},
+                            null,
+                            null,
+                            sortOrder
+                    );
+                } else {
+                    String[] selectionArgsArray = new String[kurse.size()+1];
+                    selectionArgsArray[0] = klasseStr;
+                    sbSelection
+                            .append(" AND ")
+                            .append(VplanContract.Kurse.TABLE_NAME)
+                            .append(".")
+                            .append(VplanContract.Kurse.COL_KURS)
+                            .append(" NOT IN (");
+                    for (int i = 0; i < kurse.size(); i++) {
+                        selectionArgsArray[i+1] = kurse.get(i);
+                        sbSelection.append("\"").append(kurse.get(i)).append("\"");
+                        if (i==kurse.size()-1) {
+                            sbSelection.append(")");
+                        } else {
+                            sbSelection.append(",");
+                        }
+                    }
+                    
+                    c = qbPlanFuerKlasseUndKurse.query(
+                            dbHelper.getReadableDatabase(),
+                            projection,
+                            sbSelection.toString(),
+                            selectionArgsArray,
+                            null,
+                            null,
+                            sortOrder
+                    );
                 }
-                c = qbPlanFuerKlasse.query(
-                        dbHelper.getReadableDatabase(),
-                        projection,
-                        klSelection,
-                        new String[]{klasseStr},
-                        null,
-                        null,
-                        sortOrder
-                );
                 break;
             }
             case ZUSATZINFO:
@@ -192,9 +236,7 @@ public class VplanProvider extends ContentProvider {
             case FREIETAGE: return VplanContract.FreieTage.CONTENT_TYPE;
             case KLASSEN: return VplanContract.Klassen.CONTENT_TYPE;
             case KURSE: return VplanContract.Kurse.CONTENT_TYPE;
-            case KURSE_FUER_KLASSE: return VplanContract.Kurse.CONTENT_ITEM_TYPE;
             case PLAN: return VplanContract.Plan.CONTENT_TYPE;
-            case PLAN_FUER_KLASSE: return VplanContract.Plan.CONTENT_ITEM_TYPE;
             case ZUSATZINFO: return VplanContract.Zusatzinfo.CONTENT_TYPE;
             default: throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
@@ -237,35 +279,47 @@ public class VplanProvider extends ContentProvider {
             }
             default: throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
+        getContext().getContentResolver().notifyChange(u, null);
         return u;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int ret = 0;
         switch(uriMatcher.match(uri)) {
-            case KOPF: return db.delete(VplanContract.Kopf.TABLE_NAME,selection,selectionArgs);
-            case FREIETAGE: return db.delete(VplanContract.FreieTage.TABLE_NAME,selection,selectionArgs);
-            case KLASSEN: return db.delete(VplanContract.Klassen.TABLE_NAME,selection,selectionArgs);
-            case KURSE: return db.delete(VplanContract.Kurse.TABLE_NAME,selection,selectionArgs);
-            case PLAN: return db.delete(VplanContract.Plan.TABLE_NAME,selection,selectionArgs);
-            case ZUSATZINFO: return db.delete(VplanContract.Zusatzinfo.TABLE_NAME,selection,selectionArgs);
+            case KOPF: {
+                ret = db.delete(VplanContract.Kopf.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
+            case FREIETAGE: {
+                ret = db.delete(VplanContract.FreieTage.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
+            case KLASSEN: {
+                ret =  db.delete(VplanContract.Klassen.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
+            case KURSE: {
+                ret = db.delete(VplanContract.Kurse.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
+            case PLAN: {
+                ret = db.delete(VplanContract.Plan.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
+            case ZUSATZINFO: {
+                ret = db.delete(VplanContract.Zusatzinfo.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
             default: throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return ret;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         throw new UnsupportedOperationException("Updates not implemented!");
-    }
-
-    @Override
-    public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
-        return super.applyBatch(operations);
-    }
-
-    @Override
-    public int bulkInsert(Uri uri, ContentValues[] values) {
-        return super.bulkInsert(uri, values);
     }
 }
