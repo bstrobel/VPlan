@@ -54,6 +54,10 @@ public class VplanParser {
                 getZusatzinfo(ops, re.getChild("ZusatzInfo"));
                 crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
                 Log.i(LT,"New data received. Database udapted!");
+                logContentsDbTable(VplanContract.Kopf.TABLE_NAME, VplanContract.Kopf.CONTENT_URI);
+                logContentsDbTable(VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
+                logContentsDbTable(VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
+                logContentsDbTable(VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
             }
         } catch (ParseException | JDOMException | IOException | RemoteException | OperationApplicationException e) {
             Log.e(LT,e.getMessage() + " while parsing XML \nStackTrace:\n" + Utils.getStackTraceString(e));
@@ -190,5 +194,50 @@ public class VplanParser {
         } else {
             return "";
         }
+    }
+
+    private void logContentsDbTable(String tableName, Uri uri) {
+        Log.d(LT, "Logging contents of table " + tableName + ", URI=" + uri);
+        Cursor c = crslv.query(uri, null, null, null, null);
+        if (c != null) {
+            Log.d(LT, "Size of table " + tableName + " is " + c.getCount());
+            String[] colNames = c.getColumnNames();
+            int colCount = c.getColumnCount();
+            // print column header
+            StringBuilder sb = new StringBuilder();
+            for (String cn: colNames) {
+                sb.append(cn).append(" # ");
+            }
+            Log.d(LT,sb.toString());
+            while(c.moveToNext()) {
+                StringBuilder row =new StringBuilder();
+                for (int i = 0; i < colCount; i++) {
+                    switch (c.getType(i)) {
+                        case Cursor.FIELD_TYPE_BLOB:
+                            row.append(c.getBlob(i));
+                            break;
+                        case Cursor.FIELD_TYPE_FLOAT:
+                            row.append(c.getFloat(i));
+                            break;
+                        case Cursor.FIELD_TYPE_INTEGER:
+                            row.append(c.getInt(i));
+                            break;
+                        case Cursor.FIELD_TYPE_NULL:
+                            row.append("NULL");
+                            break;
+                        case Cursor.FIELD_TYPE_STRING:
+                            row.append(c.getString(i));
+                            break;
+                        default:
+                            row.append("UNKNOWN_COL_TYPE");
+                    }
+                    row.append(" # ");
+                }
+                Log.d(LT,row.toString());
+            }
+        } else {
+            Log.d(LT, "Cursor for table " + tableName + " is NULL");
+        }
+
     }
 }

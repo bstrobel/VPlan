@@ -22,6 +22,8 @@ import android.widget.ListView;
 import com.strobelb69.vplan.data.VplanContract;
 import com.strobelb69.vplan.sync.VplanSyncAdapter;
 
+import java.util.Map;
+
 /**
  * Created by Bernd on 15.03.2015.
  */
@@ -32,7 +34,7 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
             VplanContract.Plan.COL_STUNDE,
             VplanContract.Plan.COL_FACH,
             VplanContract.Plan.COL_FACH_NEU,
-            VplanContract.Plan.COL_LEHRER,
+            VplanContract.Plan.TABLE_NAME+"."+VplanContract.Plan.COL_LEHRER,
             VplanContract.Plan.COL_LEHRER_NEU,
             VplanContract.Plan.COL_RAUM,
             VplanContract.Plan.COL_RAUM_NEU,
@@ -88,8 +90,12 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        String selectedKlasse = prefs.getString(keyKlasse,getString(R.string.prefDefKlasse));
         // Check for isAdded() is done to avoid "java.lang.IllegalStateException: Fragment VPlanFragment{19a95b71} not attached to Activity"
-        if (isAdded() && (key.equals(keyKlasse) || key.equals(keyKomprDoppelStd))) {
+        if (isAdded() &&
+                (key.equals(keyKlasse) ||
+                        key.equals(keyKomprDoppelStd) ||
+                        key.startsWith(selectedKlasse+SettingsFragment.KLASSE_KURS_SEP))) {
             setUriKlasse(prefs);
             getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, this);
         }
@@ -98,11 +104,23 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
     private void setUriKlasse(SharedPreferences prefs) {
         String selectedKlasse = prefs.getString(keyKlasse,getString(R.string.prefDefKlasse));
         Boolean isKomprDoppelStd = prefs.getBoolean(keyKomprDoppelStd, MainActivity.prefDefDoppelstunde);
+
         uriKlasse = VplanContract.Plan.CONTENT_URI.buildUpon().appendQueryParameter(VplanContract.PARAM_KEY_KLASSE,selectedKlasse).build();
         if (isKomprDoppelStd) {
             uriKlasse = uriKlasse.buildUpon().appendQueryParameter(VplanContract.PARAM_KEY_KOMP_DOPPELSTD,"true").build();
         }
 
+        Uri.Builder urib = uriKlasse.buildUpon();
+        Map<String,?> pm = prefs.getAll();
+        for (String key: pm.keySet()) {
+            if (key.startsWith(selectedKlasse+SettingsFragment.KLASSE_KURS_SEP)) {
+                String kurs = key.split(SettingsFragment.KLASSE_KURS_SEP)[1];
+                if (!prefs.getBoolean(key,true)) {
+                    urib.appendQueryParameter(VplanContract.PARAM_KEY_KURS,kurs);
+                }
+            }
+        }
+        uriKlasse=urib.build();
     }
 
     @Override

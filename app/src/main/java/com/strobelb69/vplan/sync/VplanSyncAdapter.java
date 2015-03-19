@@ -26,7 +26,7 @@ import java.net.URL;
  */
 public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
 
-    public final static int DEF_SYNCINTERVAL = 20;
+    public final static int DEF_SYNCINTERVAL = 30 * 60;
     public final static int DEF_FLEXTIME = DEF_SYNCINTERVAL /3;
 
     private final String LT = getClass().getSimpleName();

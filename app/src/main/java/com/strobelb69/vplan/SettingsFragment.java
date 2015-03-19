@@ -3,11 +3,14 @@ package com.strobelb69.vplan;
 import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 
 import com.strobelb69.vplan.data.VplanContract;
 
@@ -18,6 +21,7 @@ import java.util.List;
  * Created by bstrobel on 16.03.2015.
  */
 public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+    public static final String KLASSE_KURS_SEP = "~";
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +52,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(prefKlasse.getContext());
         String currKlasse = prefs.getString(prefKlasse.getKey(),getString(R.string.prefDefKlasse));
         onPreferenceChange(prefKlasse, currKlasse);
+
+        buildKursList(currKlasse);
     }
 
     @Override
@@ -59,8 +65,31 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             if (i >= 0) {
                 CharSequence value = lp.getEntries()[i];
                 lp.setSummary(value);
+                buildKursList(value.toString());
             }
         }
         return true;
+    }
+
+    private void buildKursList(String klasse) {
+        SharedPreferences sPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        PreferenceScreen kursScreen = (PreferenceScreen) findPreference(getString(R.string.prefKeyKurs));
+        kursScreen.removeAll();
+        Uri uriKurseFuerKlasse = VplanContract.BASE_CONTENT_URI.buildUpon()
+                .appendPath(VplanContract.PATH_KURSE)
+                .appendQueryParameter(VplanContract.PARAM_KEY_KLASSE,klasse)
+                .build();
+        Cursor c = getActivity().getContentResolver().query(uriKurseFuerKlasse,new String[]{VplanContract.Kurse.COL_KURS},null,null,null);
+        if (c!=null) {
+            while (c.moveToNext()) {
+                String kurs = c.getString(0);
+                CheckBoxPreference cbp = new CheckBoxPreference(getActivity());
+                String key = klasse+KLASSE_KURS_SEP+kurs;
+                cbp.setTitle(kurs);
+                cbp.setKey(key);
+                cbp.setChecked(sPref.getBoolean(key,true));
+                kursScreen.addPreference(cbp);
+            }
+        }
     }
 }

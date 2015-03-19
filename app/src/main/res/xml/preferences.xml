@@ -3,6 +3,10 @@
     <ListPreference
         android:title="@string/prefTitleKlasse"
         android:key="@string/prefKeyKlasse"/>
+    <PreferenceScreen
+        android:title="@string/prefTitleKurs"
+        android:key="@string/prefKeyKurs"
+        />
     <SwitchPreference
         android:title="@string/prefTitleDoppelstunde"
         android:key="@string/prefKeyDoppelstunde"

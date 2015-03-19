@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.util.Log;
 
 import java.util.List;
 
@@ -30,16 +31,10 @@ public class VplanProvider extends ContentProvider {
     static {
         qbPlanFuerKlasseUndKurse = new SQLiteQueryBuilder();
         qbPlanFuerKlasseUndKurse.setTables(
-                VplanContract.Plan.TABLE_NAME + " INNER JOIN " +
-                        VplanContract.Klassen.TABLE_NAME + " ON " +
-                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KLASSEN_KEY +
-                        " = " +
-                        VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID + "AND" +
-                        VplanContract.Kurse.TABLE_NAME + " INNER JOIN " +
-                        VplanContract.Klassen.TABLE_NAME + " ON " +
-                        VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse.COL_KLASSEN_KEY +
-                        " = " +
-                        VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID
+                VplanContract.Plan.TABLE_NAME + " LEFT JOIN " + VplanContract.Kurse.TABLE_NAME + " ON " +
+                        VplanContract.Plan.COL_KURSE_KEY + " = " + VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse._ID +
+                        " JOIN " + VplanContract.Klassen.TABLE_NAME + " ON " +
+                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KLASSEN_KEY + " = " + VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID
         );
         qbPlanFuerKlasse = new SQLiteQueryBuilder();
         qbPlanFuerKlasse.setTables(
@@ -191,7 +186,7 @@ public class VplanProvider extends ContentProvider {
                             .append(" NOT IN (");
                     for (int i = 0; i < kurse.size(); i++) {
                         selectionArgsArray[i+1] = kurse.get(i);
-                        sbSelection.append("\"").append(kurse.get(i)).append("\"");
+                        sbSelection.append("?");
                         if (i==kurse.size()-1) {
                             sbSelection.append(")");
                         } else {

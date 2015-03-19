@@ -4,8 +4,12 @@
     <string name="action_refresh">Aktualisieren</string>
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
     <string name="prefTitleKlasse">Klasse</string>
+    <string name="prefTitleKurs">Kurse</string>
+
     <string name="prefKeyKlasse" translatable="false">klasse</string>
     <string name="prefDefKlasse" translatable="false">5a</string>
+    <string name="prefKeyKurs" translatable="false">kurs</string>
+
     <string name="prefTitleDoppelstunde">Doppelstunden zusammenfassen</string>
     <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
