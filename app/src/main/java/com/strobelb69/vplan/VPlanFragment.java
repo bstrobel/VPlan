@@ -90,12 +90,11 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        String selectedKlasse = prefs.getString(keyKlasse,getString(R.string.prefDefKlasse));
         // Check for isAdded() is done to avoid "java.lang.IllegalStateException: Fragment VPlanFragment{19a95b71} not attached to Activity"
         if (isAdded() &&
                 (key.equals(keyKlasse) ||
                         key.equals(keyKomprDoppelStd) ||
-                        key.startsWith(selectedKlasse+SettingsFragment.KLASSE_KURS_SEP))) {
+                        key.contains(SettingsFragment.KLASSE_KURS_SEP))) {
             setUriKlasse(prefs);
             getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, this);
         }

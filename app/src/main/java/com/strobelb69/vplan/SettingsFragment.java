@@ -79,15 +79,25 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .appendPath(VplanContract.PATH_KURSE)
                 .appendQueryParameter(VplanContract.PARAM_KEY_KLASSE,klasse)
                 .build();
-        Cursor c = getActivity().getContentResolver().query(uriKurseFuerKlasse,new String[]{VplanContract.Kurse.COL_KURS},null,null,null);
+        Cursor c = getActivity().getContentResolver().query(uriKurseFuerKlasse,new String[]{VplanContract.Kurse.COL_KURS, VplanContract.Kurse.COL_LEHRER},null,null,null);
         if (c!=null) {
+            StringBuilder sb = new StringBuilder();
             while (c.moveToNext()) {
                 String kurs = c.getString(0);
                 CheckBoxPreference cbp = new CheckBoxPreference(getActivity());
                 String key = klasse+KLASSE_KURS_SEP+kurs;
-                cbp.setTitle(kurs);
+                cbp.setTitle(kurs + " - " + c.getString(1));
                 cbp.setKey(key);
-                cbp.setChecked(sPref.getBoolean(key,true));
+                boolean isSelected = sPref.getBoolean(key,true);
+                cbp.setChecked(isSelected);
+                // TODO: Summary wird nicht aktualisiert, wenn die Kursliste angepasst wurde.
+                if (isSelected) {
+                    if (sb.length()>0) {
+                        sb.append(", ");
+                    }
+                    sb.append(kurs);
+                }
+                kursScreen.setSummary(sb.toString());
                 kursScreen.addPreference(cbp);
             }
         }

@@ -153,7 +153,7 @@ public class VplanProvider extends ContentProvider {
                     sbSelection
                             .append(" AND ")
                             .append(VplanContract.Plan.COL_STUNDE)
-                            .append(" NOT IN (\"2\",\"4\",\"6\",\"8\")");
+                            .append(" NOT IN (\"2\",\"4\",\"6\",\"8\",\"10\")");
                 }
                 if (klasseStr == null) {
                     c = dbHelper.getReadableDatabase().query(
