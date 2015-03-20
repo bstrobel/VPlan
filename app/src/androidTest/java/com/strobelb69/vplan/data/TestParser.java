@@ -6,10 +6,13 @@ import android.net.Uri;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
+import com.strobelb69.vplan.R;
+import com.strobelb69.vplan.SettingsMainFragment;
 import com.strobelb69.vplan.net.VplanRetriever;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Created by Bernd on 15.03.2015.
@@ -19,10 +22,6 @@ public class TestParser extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-    }
-
-    public void testToParse() {
 //        Das funktioniert nicht. Wahrscheinlich geht getResourceAsStream() nicht in Android
 //        oder es geht bei Tests nicht.
 //        InputStream is = getClass().getResourceAsStream("com/strobelb69/vplan/data/Klassen.xml");
@@ -30,7 +29,77 @@ public class TestParser extends AndroidTestCase {
 //        new VplanParser(mContext).retrievePlan(is);
         VplanRetriever rt = new VplanRetriever(mContext);
         rt.retrieveFromNet();
+
+    }
+
+    public void testQueryKlasseKurse() {
+        String klasse = "8c";
+        String kurs = "GEWI_1";
+//        String klasse = "5b";
+//        String kurs = "Ree5";
+        Uri uriKlasse;
+        uriKlasse = VplanContract.Plan.CONTENT_URI.buildUpon().appendQueryParameter(VplanContract.PARAM_KEY_KLASSE,klasse).build();
+        Uri uriKurse = VplanContract.Kurse.CONTENT_URI.buildUpon().appendQueryParameter(VplanContract.PARAM_KEY_KLASSE, klasse).build();
+
+        Uri.Builder urib = uriKlasse.buildUpon();
+        urib.appendQueryParameter(VplanContract.PARAM_KEY_KURS,kurs);
+        logContentsDbTable("Plan für "+klasse+" ohne Kurs "+kurs, urib.build());
+
+        logContentsDbTable("Plan für "+klasse , uriKlasse);
+        logContentsDbTable("Kurse für Klasse " + klasse, uriKurse);
+    }
+
+
+    private void logContentsDbTable(String tableName, Uri uri) {
+        Log.d(LT, "Logging contents of table " + tableName + ", URI=" + uri);
+        ContentResolver crslv = mContext.getContentResolver();
+        Cursor c = crslv.query(uri, null, null, null, null);
+        if (c != null) {
+            Log.d(LT, "Size of table " + tableName + " is " + c.getCount());
+            String[] colNames = c.getColumnNames();
+            int colCount = c.getColumnCount();
+            // print column header
+            StringBuilder sb = new StringBuilder();
+            for (String cn: colNames) {
+                sb.append(cn).append(" # ");
+            }
+            Log.d(LT,sb.toString());
+            while(c.moveToNext()) {
+                StringBuilder row =new StringBuilder();
+                for (int i = 0; i < colCount; i++) {
+                    switch (c.getType(i)) {
+                        case Cursor.FIELD_TYPE_BLOB:
+                            row.append(c.getBlob(i));
+                            break;
+                        case Cursor.FIELD_TYPE_FLOAT:
+                            row.append(c.getFloat(i));
+                            break;
+                        case Cursor.FIELD_TYPE_INTEGER:
+                            row.append(c.getInt(i));
+                            break;
+                        case Cursor.FIELD_TYPE_NULL:
+                            row.append("NULL");
+                            break;
+                        case Cursor.FIELD_TYPE_STRING:
+                            row.append(c.getString(i));
+                            break;
+                        default:
+                            row.append("UNKNOWN_COL_TYPE");
+                    }
+                    row.append(" # ");
+                }
+                Log.d(LT,row.toString());
+            }
+        } else {
+            Log.d(LT, "Cursor for table " + tableName + " is NULL");
+        }
+
+    }
+
+
+    public void NOtestToParse() {
         ContentResolver cntrslv = mContext.getContentResolver();
+        String keyKlasse = VplanContract.PARAM_KEY_KLASSE;
 
         Cursor crsKopf = cntrslv.query(VplanContract.Kopf.CONTENT_URI,null,null,null,null);
         assertTrue(crsKopf.isBeforeFirst());
@@ -61,9 +130,9 @@ public class TestParser extends AndroidTestCase {
         crsPlan.close();
 
         String testKlasse = "8c";
-        Uri uriKurse8c = VplanContract.Kurse.CONTENT_URI.buildUpon().appendPath(testKlasse).build();
+        Uri uriKurse8c = VplanContract.Kurse.CONTENT_URI.buildUpon().appendQueryParameter(keyKlasse,testKlasse).build();
         String type = cntrslv.getType(uriKurse8c);
-        assertEquals("Wrong type returned: " + type, type, VplanContract.Kurse.CONTENT_ITEM_TYPE);
+        assertEquals("Wrong type returned: " + type, type, VplanContract.Kurse.CONTENT_TYPE);
         String[] projKurse = new String[] {
                 VplanContract.Kurse.COL_KURS,
                 VplanContract.Kurse.COL_LEHRER
@@ -77,9 +146,9 @@ public class TestParser extends AndroidTestCase {
         }
         crsKurse.close();
 
-        Uri uriPlan8C = VplanContract.Plan.CONTENT_URI.buildUpon().appendPath(testKlasse).build();
+        Uri uriPlan8C = VplanContract.Plan.CONTENT_URI.buildUpon().appendQueryParameter(keyKlasse,testKlasse).build();
         String typePlan = cntrslv.getType(uriPlan8C);
-        assertEquals("Wrong type returned: " + typePlan, typePlan, VplanContract.Plan.CONTENT_ITEM_TYPE);
+        assertEquals("Wrong type returned: " + typePlan, typePlan, VplanContract.Plan.CONTENT_TYPE);
         String[] projPlan = new String[] {
                 VplanContract.Plan.COL_STUNDE,
                 VplanContract.Plan.COL_FACH,

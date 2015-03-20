@@ -26,6 +26,8 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
     public static final int COL_RAUM_NEU = 7;
     public static final int COL_INF = 8;
     private final String keyKonprDoppelStd;
+    private final String lblBlock;
+    private final String lblStunde;
     private boolean isKeyKomprDoppelStd;
     private final String LT = getClass().getSimpleName();
 
@@ -33,6 +35,8 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
         super(context, c, flags);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         keyKonprDoppelStd = context.getString(R.string.prefKeyDoppelstunde);
+        lblBlock = context.getString(R.string.lblBlock);
+        lblStunde = context.getString(R.string.lblStunde);
         onSharedPreferenceChanged(prefs, keyKonprDoppelStd);
         prefs.registerOnSharedPreferenceChangeListener(this);
     }
@@ -48,9 +52,12 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
     public void bindView(View v, Context ctx, Cursor c) {
         String stunde = c.getString(COL_STUNDE);
         try {
-            int stundeInt = Integer.parseInt(stunde);
             if (isKeyKomprDoppelStd) {
-                stunde = stundeInt + "+" + (stundeInt + 1);
+                int stundeInt = Integer.parseInt(stunde);
+//                stunde = stundeInt + "+" + (stundeInt + 1);
+                stunde = String.valueOf((stundeInt + 1)/2) + lblBlock;
+            } else {
+                stunde = stunde + lblStunde;
             }
         } catch (NumberFormatException e) {
             Log.w(LT,"String for stunde cannot be parsed to int: "+stunde);

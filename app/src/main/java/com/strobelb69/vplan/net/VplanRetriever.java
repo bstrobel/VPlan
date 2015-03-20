@@ -21,23 +21,16 @@ public class VplanRetriever {
     private final VplanParser parser;
     private final String urlStr;
     private final String LT = getClass().getSimpleName();
-    private final ConnectivityManager cm;
 
     public VplanRetriever(Context ctx) {
         super();
         parser = new VplanParser(ctx);
         urlStr = ctx.getResources().getString(R.string.vplanUrl);
-        cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     public void retrieveFromNet() {
         InputStream is = null;
         try {
-            NetworkInfo ni = cm.getActiveNetworkInfo();
-            if (ni == null || !ni.isConnected()) {
-                Log.i(LT, "Not connected to network. Vplan not updated!");
-                return;
-            }
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(10000 /* milliseconds */);

@@ -31,11 +31,17 @@ public class VplanProvider extends ContentProvider {
     static {
         qbPlanFuerKlasseUndKurse = new SQLiteQueryBuilder();
         qbPlanFuerKlasseUndKurse.setTables(
-                VplanContract.Plan.TABLE_NAME + " LEFT JOIN " + VplanContract.Kurse.TABLE_NAME + " ON " +
-                        VplanContract.Plan.COL_KURSE_KEY + " = " + VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse._ID +
-                        " JOIN " + VplanContract.Klassen.TABLE_NAME + " ON " +
-                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KLASSEN_KEY + " = " + VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID
+                VplanContract.Plan.TABLE_NAME + " JOIN " + VplanContract.Klassen.TABLE_NAME + " ON " +
+                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KLASSEN_KEY + " = " + VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID +
+                        " LEFT JOIN " + VplanContract.Kurse.TABLE_NAME + " ON " +
+                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KURSE_KEY + " = " + VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse._ID
         );
+//        qbPlanFuerKlasseUndKurse.setTables(
+//                VplanContract.Plan.TABLE_NAME + " LEFT JOIN " + VplanContract.Kurse.TABLE_NAME + " ON " +
+//                        VplanContract.Plan.COL_KURSE_KEY + " = " + VplanContract.Kurse.TABLE_NAME + "." + VplanContract.Kurse._ID +
+//                        " JOIN " + VplanContract.Klassen.TABLE_NAME + " ON " +
+//                        VplanContract.Plan.TABLE_NAME + "." + VplanContract.Plan.COL_KLASSEN_KEY + " = " + VplanContract.Klassen.TABLE_NAME + "." + VplanContract.Klassen._ID
+//        );
         qbPlanFuerKlasse = new SQLiteQueryBuilder();
         qbPlanFuerKlasse.setTables(
                 VplanContract.Plan.TABLE_NAME + " INNER JOIN " +
@@ -179,7 +185,11 @@ public class VplanProvider extends ContentProvider {
                     String[] selectionArgsArray = new String[kurse.size()+1];
                     selectionArgsArray[0] = klasseStr;
                     sbSelection
-                            .append(" AND ")
+                            .append(" AND (")
+                            .append(VplanContract.Kurse.TABLE_NAME)
+                            .append(".")
+                            .append(VplanContract.Kurse.COL_KURS)
+                            .append(" ISNULL OR ")
                             .append(VplanContract.Kurse.TABLE_NAME)
                             .append(".")
                             .append(VplanContract.Kurse.COL_KURS)
@@ -193,7 +203,7 @@ public class VplanProvider extends ContentProvider {
                             sbSelection.append(",");
                         }
                     }
-                    
+                    sbSelection.append(")");
                     c = qbPlanFuerKlasseUndKurse.query(
                             dbHelper.getReadableDatabase(),
                             projection,

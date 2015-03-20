@@ -5,48 +5,63 @@
     android:id="@+id/list_item_vplan"
     android:orientation="horizontal">
 
-    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="@dimen/vplan_item_width"
-        android:layout_height="match_parent"
-        android:minHeight="?android:attr/listPreferredItemHeight"
-        android:id="@+id/list_item_vplan_stunde"
-        android:text="1+2"
-        android:textStyle="bold"
-        android:textSize="@dimen/abc_text_size_large_material"
-        android:gravity="center">
-    </TextView>
-    <TextView
-        android:layout_width="@dimen/vplan_item_width"
-        android:layout_height="match_parent"
-        android:minHeight="?android:attr/listPreferredItemHeight"
-        android:gravity="center_vertical"
-        android:id="@+id/list_item_vplan_fach"
-        android:text="En"
-        android:textSize="@dimen/abc_text_size_large_material"
-        android:textStyle="bold" />
-    <TextView
-        android:layout_width="@dimen/vplan_item_width_small"
-        android:layout_height="match_parent"
-        android:minHeight="?android:attr/listPreferredItemHeight"
-        android:gravity="center_vertical"
-        android:id="@+id/list_item_vplan_raum"
-        android:text="403"
-        android:textSize="@dimen/abc_text_size_medium_material" />
-    <TextView
-        android:layout_width="@dimen/vplan_item_width_small"
-        android:layout_height="match_parent"
-        android:minHeight="?android:attr/listPreferredItemHeight"
-        android:gravity="center_vertical"
-        android:id="@+id/list_item_vplan_lehrer"
-        android:text="Ktz"
-        android:textSize="@dimen/abc_text_size_medium_material" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="@dimen/vplan_item_width"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/vplan_item_min_height"
+            android:id="@+id/list_item_vplan_stunde"
+            android:text="Block 3"
+            android:textStyle="bold"
+            android:textSize="@dimen/abc_text_size_small_material"
+            android:gravity="left|center_vertical"
+            android:paddingLeft="@dimen/vplan_item_padding_left">
+        </TextView>
+        <TextView
+            android:layout_width="@dimen/vplan_item_width"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/vplan_item_min_height"
+            android:gravity="left|center_vertical"
+            android:id="@+id/list_item_vplan_fach"
+            android:text="GEWI_1"
+            android:textSize="@dimen/abc_text_size_large_material"
+            android:textStyle="bold"
+            android:paddingLeft="@dimen/vplan_item_padding_left"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="@dimen/vplan_item_width_small"
+            android:layout_height="match_parent"
+            android:minHeight="@dimen/vplan_item_min_height"
+            android:gravity="center"
+            android:id="@+id/list_item_vplan_raum"
+            android:text="403"
+            android:textSize="@dimen/abc_text_size_medium_material" />
+        <TextView
+            android:layout_width="@dimen/vplan_item_width_small"
+            android:layout_height="match_parent"
+            android:minHeight="@dimen/vplan_item_min_height"
+            android:gravity="center"
+            android:id="@+id/list_item_vplan_lehrer"
+            android:text="Ktz"
+            android:textSize="@dimen/abc_text_size_medium_material" />
+    </LinearLayout>
     <TextView
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:minHeight="?android:attr/listPreferredItemHeight"
         android:gravity="center_vertical"
         android:id="@+id/list_item_vplan_info"
-        android:text="Bitte ruhe"
+        android:text="Bitte Ruhe im Raum. Schüler über selbständig. Keiner verlässt die Schule!"
         android:textSize="12sp"
         android:layout_gravity="end"
         android:layout_weight="1" />
