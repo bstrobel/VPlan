@@ -66,7 +66,9 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
+            Intent intPrefs = new Intent(this, SettingsActivity.class);
+            intPrefs.setData(SettingsActivity.BASE_PREF_URI.buildUpon().appendPath(SettingsActivity.PATH_MAIN).build());
+            startActivity(intPrefs);
             return true;
         }
 

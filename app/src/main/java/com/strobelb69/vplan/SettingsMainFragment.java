@@ -5,12 +5,10 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.PreferenceScreen;
 
 import com.strobelb69.vplan.data.VplanContract;
 
@@ -20,8 +18,9 @@ import java.util.List;
 /**
  * Created by bstrobel on 16.03.2015.
  */
-public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+public class SettingsMainFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String KLASSE_KURS_SEP = "~";
+    private SharedPreferences sPref;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,36 +44,33 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         prefKlasse.setEntries(klassenA); //Actual values for the setting (could be _ID for example)
         prefKlasse.setEntryValues(klassenA); //Display values
 
-        // Register us as a listener for changes in the preference
-        prefKlasse.setOnPreferenceChangeListener(this);
+        sPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sPref.registerOnSharedPreferenceChangeListener(this);
 
-        // Call the listener to set the ListPreference to the last selection.
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(prefKlasse.getContext());
-        String currKlasse = prefs.getString(prefKlasse.getKey(),getString(R.string.prefDefKlasse));
-        onPreferenceChange(prefKlasse, currKlasse);
-
-        buildKursList(currKlasse);
+        onSharedPreferenceChanged(sPref, prefKlasse.getKey());
     }
 
+    /*
+        Set the Summaries of the preferences according to the new Settings.
+     */
     @Override
-    public boolean onPreferenceChange(Preference pref, Object newpfv) {
-        String strV = newpfv.toString();
-        if (pref instanceof ListPreference) {
-            ListPreference lp = (ListPreference) pref;
-            int i = lp.findIndexOfValue(strV);
-            if (i >= 0) {
-                CharSequence value = lp.getEntries()[i];
-                lp.setSummary(value);
-                buildKursList(value.toString());
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (isAdded()) {
+            String keyKlasse = getString(R.string.prefKeyKlasse);
+            ListPreference klassePref = (ListPreference) findPreference(keyKlasse);
+            String klasse = klassePref.getValue();
+            if (key.equals(keyKlasse)) {
+                klassePref.setSummary(klassePref.getValue());
+                setKursListSummary(klasse);
+            } else if (key.contains(klasse + KLASSE_KURS_SEP)) {
+                setKursListSummary(klasse);
             }
         }
-        return true;
+
     }
 
-    private void buildKursList(String klasse) {
-        SharedPreferences sPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        PreferenceScreen kursScreen = (PreferenceScreen) findPreference(getString(R.string.prefKeyKurs));
-        kursScreen.removeAll();
+    private void setKursListSummary(String klasse) {
+        Preference kursScreen = findPreference(getString(R.string.prefKeyKurs));
         Uri uriKurseFuerKlasse = VplanContract.BASE_CONTENT_URI.buildUpon()
                 .appendPath(VplanContract.PATH_KURSE)
                 .appendQueryParameter(VplanContract.PARAM_KEY_KLASSE,klasse)
@@ -84,22 +80,16 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             StringBuilder sb = new StringBuilder();
             while (c.moveToNext()) {
                 String kurs = c.getString(0);
-                CheckBoxPreference cbp = new CheckBoxPreference(getActivity());
                 String key = klasse+KLASSE_KURS_SEP+kurs;
-                cbp.setTitle(kurs + " - " + c.getString(1));
-                cbp.setKey(key);
-                boolean isSelected = sPref.getBoolean(key,true);
-                cbp.setChecked(isSelected);
-                // TODO: Summary wird nicht aktualisiert, wenn die Kursliste angepasst wurde.
+                boolean isSelected = sPref.getBoolean(key, true);
                 if (isSelected) {
                     if (sb.length()>0) {
                         sb.append(", ");
                     }
                     sb.append(kurs);
                 }
-                kursScreen.setSummary(sb.toString());
-                kursScreen.addPreference(cbp);
             }
+            kursScreen.setSummary(sb.toString());
         }
     }
 }

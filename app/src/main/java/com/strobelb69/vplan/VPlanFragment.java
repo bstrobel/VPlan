@@ -94,7 +94,7 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
         if (isAdded() &&
                 (key.equals(keyKlasse) ||
                         key.equals(keyKomprDoppelStd) ||
-                        key.contains(SettingsFragment.KLASSE_KURS_SEP))) {
+                        key.contains(SettingsMainFragment.KLASSE_KURS_SEP))) {
             setUriKlasse(prefs);
             getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, this);
         }
@@ -112,8 +112,8 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
         Uri.Builder urib = uriKlasse.buildUpon();
         Map<String,?> pm = prefs.getAll();
         for (String key: pm.keySet()) {
-            if (key.startsWith(selectedKlasse+SettingsFragment.KLASSE_KURS_SEP)) {
-                String kurs = key.split(SettingsFragment.KLASSE_KURS_SEP)[1];
+            if (key.startsWith(selectedKlasse+ SettingsMainFragment.KLASSE_KURS_SEP)) {
+                String kurs = key.split(SettingsMainFragment.KLASSE_KURS_SEP)[1];
                 if (!prefs.getBoolean(key,true)) {
                     urib.appendQueryParameter(VplanContract.PARAM_KEY_KURS,kurs);
                 }

@@ -5,6 +5,7 @@
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
     <string name="prefTitleKlasse">Klasse</string>
     <string name="prefTitleKurs">Kurse</string>
+    <string name="prefSubTitleKurs">Auswahl der belegten Kurse</string>
 
     <string name="prefKeyKlasse" translatable="false">klasse</string>
     <string name="prefDefKlasse" translatable="false">5a</string>
