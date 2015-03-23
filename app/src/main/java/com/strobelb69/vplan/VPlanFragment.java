@@ -52,6 +52,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     private DateFormat df;
     private PlanLoader planLoader;
     private TimeStampLoader timeStampLoader;
+    private ZusatzinfoLoader zusinfoLoader;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,6 +64,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
         setUriKlasse(PreferenceManager.getDefaultSharedPreferences(getActivity()));
         planLoader = new PlanLoader();
         timeStampLoader = new TimeStampLoader();
+        zusinfoLoader = new ZusatzinfoLoader();
         df = DateFormat.getDateTimeInstance();
     }
 
@@ -95,6 +97,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
         getLoaderManager().restartLoader(MainActivity.TIMESTAMP_LOADER, null, timeStampLoader);
+        getLoaderManager().restartLoader(MainActivity.ZUSATZINFO_LOADER, null, zusinfoLoader);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         prefs.registerOnSharedPreferenceChangeListener(this);
         super.onActivityCreated(savedInstanceState);
@@ -150,6 +153,40 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
                 TextView tvTimeStamp = (TextView) getActivity().findViewById(R.id.textview_timestamp_of_last_update);
                 tvTimeStamp.setText(lblTimeStamp + " " + df.format(new Date(c.getLong(0))));
             }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+            Log.d(LT,"onLoadReset:");
+        }
+    }
+
+    private class ZusatzinfoLoader implements LoaderManager.LoaderCallbacks<Cursor> {
+        String LT = getClass().getSimpleName();
+
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            Uri uriKopf = VplanContract.BASE_CONTENT_URI.buildUpon().appendPath(VplanContract.PATH_ZUSATZINFO).build();
+            Log.d(LT,"onCreateLoader: Loader created with URI="+uriKopf);
+            return new CursorLoader(getActivity(),uriKopf,new String[]{VplanContract.Zusatzinfo.COL_ZIZEILE},null,null,null);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
+            Log.d(LT,"onLoadFinished:");
+            TextView tvZusInfo = (TextView) getActivity().findViewById(R.id.textview_zusatzinfo);
+            StringBuilder sb = new StringBuilder();
+            if (c != null && c.getCount() > 0) {
+                while (c.moveToNext()) {
+                    sb.append(c.getString(0));
+                    if (!c.isLast()) {
+                        sb.append("\n");
+                    }
+                }
+            } else {
+                sb.append(getString(R.string.strNoZusinfo));
+            }
+            tvZusInfo.setText(sb.toString());
         }
 
         @Override

@@ -19,4 +19,5 @@
     <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
 
     <string name="lblTimestamp">Stand vom</string>
+    <string name="strNoZusinfo">Keine weitern Information. Bitte gegebenenfalls Aushänge beachten!</string>
 </resources>

@@ -28,6 +28,7 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
     public static final int TITLE_LOADER = 0;
     public static final int PLAN_LIST_LOADER = TITLE_LOADER+1;
     public static final int TIMESTAMP_LOADER = TITLE_LOADER+2;
+    public static final int ZUSATZINFO_LOADER = TITLE_LOADER+3;
     public static boolean prefDefDoppelstunde=true;
     private String currKlasse;
     private String klasseKey;
