@@ -6,6 +6,7 @@
     <dimen name="vplan_item_width_small">45dp</dimen>
     <dimen name="vplan_item_min_height">30dp</dimen>
     <dimen name="vplan_item_padding_left">10dp</dimen>
-    <dimen name="time_stamp_text_size">7sp</dimen>
+    <dimen name="time_stamp_text_size">8sp</dimen>
     <dimen name="zusatzinfo_margin">4dp</dimen>
+    <dimen name="zusatzinfo_elevation">4dp</dimen>
 </resources>

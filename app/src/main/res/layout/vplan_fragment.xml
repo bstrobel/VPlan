@@ -22,6 +22,7 @@
         android:paddingRight="@dimen/zusatzinfo_margin"
         android:paddingTop="@dimen/zusatzinfo_margin"
         android:paddingBottom="@dimen/zusatzinfo_margin"
+        android:elevation="@dimen/zusatzinfo_elevation"
         android:background="@color/bernd_blue">
         <TextView
             android:layout_width="match_parent"
