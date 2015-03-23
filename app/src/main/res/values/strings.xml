@@ -17,4 +17,6 @@
     <string name="lblStunde">. Stunde</string>
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
     <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
+
+    <string name="lblTimestamp">Stand vom</string>
 </resources>

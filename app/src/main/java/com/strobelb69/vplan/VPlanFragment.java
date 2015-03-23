@@ -46,6 +46,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     private String LT = getClass().getSimpleName();
     private static String keyKlasse;
     private static String keyKomprDoppelStd;
+    private static String lblTimeStamp;
     private Uri uriKlasse;
     VPlanAdapter vplanAdapter;
     private DateFormat df;
@@ -58,6 +59,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
         setHasOptionsMenu(true);
         keyKlasse = getString(R.string.prefKeyKlasse);
         keyKomprDoppelStd = getString(R.string.prefKeyDoppelstunde);
+        lblTimeStamp = getString(R.string.lblTimestamp);
         setUriKlasse(PreferenceManager.getDefaultSharedPreferences(getActivity()));
         planLoader = new PlanLoader();
         timeStampLoader = new TimeStampLoader();
@@ -146,7 +148,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
             Log.d(LT,"onLoadFinished:");
             if (c != null && c.moveToFirst()) {
                 TextView tvTimeStamp = (TextView) getActivity().findViewById(R.id.textview_timestamp_of_last_update);
-                tvTimeStamp.setText(df.format(new Date(c.getLong(0))));
+                tvTimeStamp.setText(lblTimeStamp + " " + df.format(new Date(c.getLong(0))));
             }
         }
 
