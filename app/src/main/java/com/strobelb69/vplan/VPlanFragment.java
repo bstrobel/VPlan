@@ -47,8 +47,10 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     private static String keyKlasse;
     private static String keyKomprDoppelStd;
     private static String lblTimeStamp;
+    private static String lblLastSync;
     private Uri uriKlasse;
     VPlanAdapter vplanAdapter;
+    private SharedPreferences sPref;
     private DateFormat df;
     private PlanLoader planLoader;
     private TimeStampLoader timeStampLoader;
@@ -58,10 +60,12 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        sPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         keyKlasse = getString(R.string.prefKeyKlasse);
         keyKomprDoppelStd = getString(R.string.prefKeyDoppelstunde);
         lblTimeStamp = getString(R.string.lblTimestamp);
-        setUriKlasse(PreferenceManager.getDefaultSharedPreferences(getActivity()));
+        lblLastSync = getString(R.string.lblLastSync);
+        setUriKlasse(sPref);
         planLoader = new PlanLoader();
         timeStampLoader = new TimeStampLoader();
         zusinfoLoader = new ZusatzinfoLoader();
@@ -98,8 +102,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
         getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
         getLoaderManager().restartLoader(MainActivity.TIMESTAMP_LOADER, null, timeStampLoader);
         getLoaderManager().restartLoader(MainActivity.ZUSATZINFO_LOADER, null, zusinfoLoader);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        prefs.registerOnSharedPreferenceChangeListener(this);
+        sPref.registerOnSharedPreferenceChangeListener(this);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -143,7 +146,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             Uri uriKopf = VplanContract.BASE_CONTENT_URI.buildUpon().appendPath(VplanContract.PATH_KOPF).build();
             Log.d(LT,"onCreateLoader: Loader created with URI="+uriKopf);
-            return new CursorLoader(getActivity(),uriKopf,new String[]{VplanContract.Kopf.COL_TIMESTAMP},null,null,null);
+            return new CursorLoader(getActivity(),uriKopf,new String[]{VplanContract.Kopf.COL_TIMESTAMP, VplanContract.Kopf.COL_LAST_SYNC},null,null,null);
         }
 
         @Override
@@ -151,7 +154,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
             Log.d(LT,"onLoadFinished:");
             if (c != null && c.moveToFirst()) {
                 TextView tvTimeStamp = (TextView) getActivity().findViewById(R.id.textview_timestamp_of_last_update);
-                tvTimeStamp.setText(lblTimeStamp + " " + df.format(new Date(c.getLong(0))));
+                tvTimeStamp.setText(lblTimeStamp + " " + df.format(new Date(c.getLong(0))) + lblLastSync + " " + df.format(new Date(c.getLong(1))));
             }
         }
 

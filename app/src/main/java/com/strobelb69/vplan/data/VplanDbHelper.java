@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Bernd on 14.03.2015.
  */
 public class VplanDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "vplan.db";
 
     public VplanDbHelper(Context context) {
@@ -36,7 +36,8 @@ public class VplanDbHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_VPLANSTATE = CREATE_TABLE + VplanContract.Kopf.TABLE_NAME + "(" +
                 VplanContract.Kopf._ID + INTEGER_PRIMARY_KEY + "," +
                 VplanContract.Kopf.COL_TIMESTAMP + INTEGER_UNIQUE_NOT_NULL + "," +
-                VplanContract.Kopf.COL_FOR_DATE + INTEGER_UNIQUE_NOT_NULL +
+                VplanContract.Kopf.COL_FOR_DATE + INTEGER_UNIQUE_NOT_NULL + "," +
+                VplanContract.Kopf.COL_LAST_SYNC + INTEGER_UNIQUE_NOT_NULL +
                 ")";
 
         final String SQL_CREATE_FREIETAGE = CREATE_TABLE + VplanContract.FreieTage.TABLE_NAME + "(" +

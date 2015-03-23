@@ -5,9 +5,11 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.strobelb69.vplan.R;
@@ -23,6 +25,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -64,19 +67,21 @@ public class VplanParser {
         }
     }
 
-    private boolean checkNewAndGetKopf(ArrayList<ContentProviderOperation> ops, Element kopf) throws ParseException {
+    private boolean checkNewAndGetKopf(ArrayList<ContentProviderOperation> ops, Element kopf) throws ParseException, RemoteException, OperationApplicationException {
         long newTimeStamp = zeitstempelParser(kopf.getChildText("zeitstempel"));
         long oldTimeStamp = getOldTimeStamp();
         Log.d(LT,"newTimeStamp="+newTimeStamp+", oldTimeStamp="+oldTimeStamp);
+        ops.add(ContentProviderOperation.newDelete(VplanContract.Kopf.CONTENT_URI).build());
+        ContentProviderOperation.Builder cpob = ContentProviderOperation.newInsert(VplanContract.Kopf.CONTENT_URI);
+        ContentValues cv = new ContentValues();
+        cv.put(VplanContract.Kopf.COL_TIMESTAMP, newTimeStamp);
+        cv.put(VplanContract.Kopf.COL_FOR_DATE, datumPlanParser(kopf.getChildText("DatumPlan")));
+        cv.put(VplanContract.Kopf.COL_LAST_SYNC, new Date().getTime());
+        ops.add(cpob.withValues(cv).build());
         if (newTimeStamp != oldTimeStamp) {
-            ops.add(ContentProviderOperation.newDelete(VplanContract.Kopf.CONTENT_URI).build());
-            ContentProviderOperation.Builder cpob = ContentProviderOperation.newInsert(VplanContract.Kopf.CONTENT_URI);
-            ContentValues cv = new ContentValues();
-            cv.put(VplanContract.Kopf.COL_TIMESTAMP, newTimeStamp);
-            cv.put(VplanContract.Kopf.COL_FOR_DATE, datumPlanParser(kopf.getChildText("DatumPlan")));
-            ops.add(cpob.withValues(cv).build());
             return true;
         } else {
+            crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
             Log.i(LT,"No new data. No update of the database needed! Timestamp=" + newTimeStamp);
             return false;
         }
