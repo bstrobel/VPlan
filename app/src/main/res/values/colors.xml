@@ -2,4 +2,5 @@
 <resources>
     <color name="bernd_blue">#ff2c90ff</color>
     <color name="bernd_blue_dark">#ff0963ff</color>
+    <color name="time_stamp_font_color">#ff848484</color>
 </resources>

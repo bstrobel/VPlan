@@ -18,16 +18,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.strobelb69.vplan.data.VplanContract;
 import com.strobelb69.vplan.sync.VplanSyncAdapter;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
  * Created by Bernd on 15.03.2015.
  */
-public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
+public class VPlanFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String[] PROJECTION_PLAN = new String[] {
             VplanContract.Plan.TABLE_NAME+"."+VplanContract.Plan._ID, // this needs the the Loader
@@ -45,6 +48,9 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
     private static String keyKomprDoppelStd;
     private Uri uriKlasse;
     VPlanAdapter vplanAdapter;
+    private DateFormat df;
+    private PlanLoader planLoader;
+    private TimeStampLoader timeStampLoader;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +59,9 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
         keyKlasse = getString(R.string.prefKeyKlasse);
         keyKomprDoppelStd = getString(R.string.prefKeyDoppelstunde);
         setUriKlasse(PreferenceManager.getDefaultSharedPreferences(getActivity()));
+        planLoader = new PlanLoader();
+        timeStampLoader = new TimeStampLoader();
+        df = DateFormat.getDateTimeInstance();
     }
 
     @Override
@@ -82,7 +91,8 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, this);
+        getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
+        getLoaderManager().restartLoader(MainActivity.TIMESTAMP_LOADER, null, timeStampLoader);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         prefs.registerOnSharedPreferenceChangeListener(this);
         super.onActivityCreated(savedInstanceState);
@@ -96,7 +106,7 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
                         key.equals(keyKomprDoppelStd) ||
                         key.contains(SettingsMainFragment.KLASSE_KURS_SEP))) {
             setUriKlasse(prefs);
-            getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, this);
+            getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
         }
     }
 
@@ -122,21 +132,49 @@ public class VPlanFragment extends Fragment implements LoaderManager.LoaderCallb
         uriKlasse=urib.build();
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d(LT,"onCreateLoader: Loader created with URI="+uriKlasse);
-        return new CursorLoader(getActivity(),uriKlasse,PROJECTION_PLAN,null,null,null);
+    private class TimeStampLoader implements LoaderManager.LoaderCallbacks<Cursor> {
+        String LT = getClass().getSimpleName();
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            Uri uriKopf = VplanContract.BASE_CONTENT_URI.buildUpon().appendPath(VplanContract.PATH_KOPF).build();
+            Log.d(LT,"onCreateLoader: Loader created with URI="+uriKopf);
+            return new CursorLoader(getActivity(),uriKopf,new String[]{VplanContract.Kopf.COL_TIMESTAMP},null,null,null);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
+            Log.d(LT,"onLoadFinished:");
+            if (c != null && c.moveToFirst()) {
+                TextView tvTimeStamp = (TextView) getActivity().findViewById(R.id.textview_timestamp_of_last_update);
+                tvTimeStamp.setText(df.format(new Date(c.getLong(0))));
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+            Log.d(LT,"onLoadReset:");
+        }
     }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d(LT,"onLoadFinished, Swapping Cursor");
-        vplanAdapter.swapCursor(data);
-    }
+    private class PlanLoader implements LoaderManager.LoaderCallbacks<Cursor> {
+        String LT = getClass().getSimpleName();
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        Log.d(LT,"onLoaderReset: Resetting Cursor to null");
-        vplanAdapter.swapCursor(null);
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            Log.d(LT,"onCreateLoader: Loader created with URI="+uriKlasse);
+            return new CursorLoader(getActivity(),uriKlasse,PROJECTION_PLAN,null,null,null);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            Log.d(LT,"onLoadFinished, Swapping Cursor");
+            vplanAdapter.swapCursor(data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+            Log.d(LT,"onLoaderReset: Resetting Cursor to null");
+            vplanAdapter.swapCursor(null);
+        }
     }
 }
