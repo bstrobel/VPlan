@@ -24,4 +24,8 @@
 
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
     <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
+
+    <string name="lblTimestamp">Stand vom</string>
+    <string name="lblLastSync">, letzter Check auf Server</string>
+    <string name="strNoZusinfo">Keine weitern Information. Bitte gegebenenfalls Aushänge beachten!</string>
 </resources>

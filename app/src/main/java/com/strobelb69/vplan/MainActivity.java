@@ -36,6 +36,8 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
     public static final String VPFMT_TAG = "VPFMT_TAG";
     public static final int TITLE_LOADER = 0;
     public static final int PLAN_LIST_LOADER = TITLE_LOADER+1;
+    public static final int TIMESTAMP_LOADER = TITLE_LOADER+2;
+    public static final int ZUSATZINFO_LOADER = TITLE_LOADER+3;
     public static boolean prefDefDoppelstunde=true;
     private String currKlasse;
     private String klasseKey;
@@ -49,7 +51,7 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new VPlanFragment(),VPFMT_TAG)
+                    .add(R.id.activity_main_container, new VPlanFragment(),VPFMT_TAG)
                     .commit();
         }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);

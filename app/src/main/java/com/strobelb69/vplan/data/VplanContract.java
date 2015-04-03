@@ -30,6 +30,7 @@ public class VplanContract {
         public static final String TABLE_NAME = PATH_KOPF;
         public static final String COL_TIMESTAMP = "zeitstempel";
         public static final String COL_FOR_DATE = "datumplan";
+        public static final String COL_LAST_SYNC = "lastsync";
     }
 
     public static final class FreieTage implements BaseColumns {
