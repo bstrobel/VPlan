@@ -3,18 +3,25 @@
     <string name="action_settings">Einstellungen</string>
     <string name="action_refresh">Aktualisieren</string>
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
+
     <string name="prefTitleKlasse">Klasse</string>
     <string name="prefTitleKurs">Kurse</string>
     <string name="prefSubTitleKurs">Auswahl der belegten Kurse</string>
-
     <string name="prefKeyKlasse" translatable="false">klasse</string>
     <string name="prefDefKlasse" translatable="false">5a</string>
     <string name="prefKeyKurs" translatable="false">kurs</string>
-
-    <string name="prefTitleDoppelstunde">Doppelstunden zusammenfassen</string>
+    <string name="prefTitleDoppelstunde">Doppelstunden</string>
+    <string name="prefSummaryDoppelstunde">Sollen Doppelstunden zu Blöcken zusammengefasst werden?</string>
     <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
+    <string name="prefTitleSendNotification">Benachrichtigung</string>
+    <string name="prefSummarySendNotification">Soll am oberen Bildschirmrand eine Benachrichtigung angezeigt werden, wenn sich der Vertretungsplan geändert hat?</string>
+    <string name="prefKeySendNotification" translatable="false">sendNotification</string>
+
     <string name="lblBlock">. Block</string>
     <string name="lblStunde">. Stunde</string>
+    <string name="notificationTitle">Vetretungsplan</string>
+    <string name="notificationText">Vetretungsplan aktualisiert!</string>
+
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
     <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
 </resources>

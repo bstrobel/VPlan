@@ -42,7 +42,7 @@ public class VplanParser {
         crslv = ctx.getContentResolver();
     }
 
-    public void retrievePlan(InputStream is) {
+    public boolean retrievePlan(InputStream is) {
         try {
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
             Document planXml = new SAXBuilder().build(is);
@@ -58,10 +58,12 @@ public class VplanParser {
                 logContentsDbTable(VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
                 logContentsDbTable(VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
                 logContentsDbTable(VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
+                return true;
             }
-        } catch (ParseException | JDOMException | IOException | RemoteException | OperationApplicationException e) {
+        } catch (Exception e) {
             Log.e(LT,e.getMessage() + " while parsing XML \nStackTrace:\n" + Utils.getStackTraceString(e));
         }
+        return false;
     }
 
     private boolean checkNewAndGetKopf(ArrayList<ContentProviderOperation> ops, Element kopf) throws ParseException {

@@ -1,9 +1,17 @@
 package com.strobelb69.vplan;
 
+import android.app.NotificationManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -17,6 +25,7 @@ import android.view.MenuItem;
 
 import com.strobelb69.vplan.data.VplanContract;
 import com.strobelb69.vplan.sync.VplanSyncAdapter;
+import com.strobelb69.vplan.sync.VplanSyncService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,6 +39,9 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
     public static boolean prefDefDoppelstunde=true;
     private String currKlasse;
     private String klasseKey;
+    private String notifKey;
+    private Messenger vplanSyncMessenger;
+    private VplanSyncServiceConnection svcConn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +57,71 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
         klasseKey = getString(R.string.prefKeyKlasse);
         currKlasse = prefs.getString(klasseKey,getString(R.string.prefDefKlasse));
 
+        notifKey = getString(R.string.prefKeySendNotification);
         getSupportLoaderManager().initLoader(TITLE_LOADER,null,this);
         VplanSyncAdapter.initializeSyncAdapter(this);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras!=null && extras.getBoolean(VplanSyncAdapter.CLEAR_NOTIFICATION_KEY)) {
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.cancel(VplanSyncAdapter.NOTIFICATION_ID);
+        }
+
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        svcConn = new VplanSyncServiceConnection(PreferenceManager.getDefaultSharedPreferences(this));
+        Intent intent = new Intent(this, VplanSyncService.class);
+        intent.putExtra(VplanSyncService.EXTRAS_KEY_FROM_APP, true);
+        bindService(intent, svcConn, BIND_WAIVE_PRIORITY);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (svcConn != null) {
+            unbindService(svcConn);
+        }
+    }
+
+    private class VplanSyncServiceConnection implements ServiceConnection {
+        SharedPreferences prefs;
+
+        private VplanSyncServiceConnection(SharedPreferences prefs) {
+            this.prefs = prefs;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+                Log.d(LT, "onServiceConnected(" + name + ", " + service + ")");
+                vplanSyncMessenger = new Messenger(service);
+                if (prefs.getBoolean(notifKey, true)) ;
+            try {
+                vplanSyncMessenger.send(getMsgFromNotifFlag(prefs));
+            } catch (RemoteException ex) {
+                Log.e(LT, ex.toString());
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            vplanSyncMessenger = null;
+        }
+
+    }
+
+    private Message getMsgFromNotifFlag(SharedPreferences prefs) {
+        Message msg;
+        if (prefs.getBoolean(notifKey, true)) {
+            msg = Message.obtain(null, VplanSyncService.NOTIFICATIONS_ON);
+        } else {
+            msg = Message.obtain(null, VplanSyncService.NOTIFICATIONS_OFF);
+        }
+        return msg;
+    }
+
 
 
     @Override
@@ -80,6 +154,16 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
         if (klasseKey.equals(key)) {
             currKlasse = prefs.getString(key,getString(R.string.prefDefKlasse));
             getSupportLoaderManager().restartLoader(TITLE_LOADER, null, this);
+        } else if (notifKey.equals(key) && vplanSyncMessenger != null) {
+            if (!prefs.getBoolean(notifKey,true)) {
+                NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                nm.cancel(VplanSyncAdapter.NOTIFICATION_ID);
+            }
+            try {
+                vplanSyncMessenger.send(getMsgFromNotifFlag(prefs));
+            } catch (RemoteException ex) {
+                Log.e(LT,ex.toString());
+            }
         }
     }
 

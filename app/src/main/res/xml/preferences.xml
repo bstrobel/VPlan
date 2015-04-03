@@ -15,6 +15,12 @@
         </Preference>
     <SwitchPreference
         android:title="@string/prefTitleDoppelstunde"
+        android:summary="@string/prefSummaryDoppelstunde"
         android:key="@string/prefKeyDoppelstunde"
+        android:defaultValue="true"/>
+    <SwitchPreference
+        android:title="@string/prefTitleSendNotification"
+        android:summary="@string/prefSummarySendNotification"
+        android:key="@string/prefKeySendNotification"
         android:defaultValue="true"/>
 </PreferenceScreen>
