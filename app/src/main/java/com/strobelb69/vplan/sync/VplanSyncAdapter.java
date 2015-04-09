@@ -19,6 +19,7 @@ import android.util.Log;
 
 import com.strobelb69.vplan.MainActivity;
 import com.strobelb69.vplan.R;
+import com.strobelb69.vplan.VplanNotificationService;
 import com.strobelb69.vplan.data.VplanParser;
 import com.strobelb69.vplan.util.Utils;
 
@@ -34,25 +35,16 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
 
     public static final int DEF_SYNCINTERVAL = 30 * 60;
     public static final int DEF_FLEXTIME = DEF_SYNCINTERVAL /3;
-    public static final int NOTIFICATION_ID = 0;
-    public static final String CLEAR_NOTIFICATION_KEY = "clearNotification";
 
     private final String LT = getClass().getSimpleName();
 
     private final VplanParser vplanParser;
     private final String urlStr;
-    private final String notificationTitle;
-    private final String notificationText;
-    private final Context ctx;
-    private boolean showNotifications  = true;
 
     public VplanSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
-        ctx = context;
         vplanParser = new VplanParser(context);
         urlStr = context.getString(R.string.vplanUrl);
-        notificationTitle = context.getString(R.string.notificationTitle);
-        notificationText = context.getString(R.string.notificationText);
     }
 
     @Override
@@ -73,9 +65,9 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
             conn.setDoInput(true);
             conn.connect();
             is = conn.getInputStream();
-            if (vplanParser.retrievePlan(is)
-                    && showNotifications) {
-                showNotification();
+            if (vplanParser.retrievePlan(is)) {
+                Log.d(LT,"Something happened, showing notification!");
+                VplanNotificationService.showNotification(getContext());
             }
             Log.i(LT, "Vplan sync finished");
         } catch (IOException e) {
@@ -93,28 +85,6 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
                 }
             }
         }
-    }
-
-    private void showNotification() {
-
-        Intent mainIntent = new Intent(ctx, MainActivity.class);
-        mainIntent.putExtra(CLEAR_NOTIFICATION_KEY, true);
-
-        TaskStackBuilder sb = TaskStackBuilder.create(ctx);
-        sb.addParentStack(MainActivity.class);
-        sb.addNextIntent(mainIntent);
-
-        PendingIntent pi = sb.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder nb = new NotificationCompat.Builder(getContext())
-                .setSmallIcon(R.drawable.bs_icon_notification)
-                .setContentTitle(notificationTitle)
-                .setContentText(notificationText)
-                .setContentIntent(pi);
-
-        NotificationManager nmgr =
-                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        nmgr.notify(NOTIFICATION_ID, nb.build());
     }
 
     public static void syncImmediately(Context ctx) {
@@ -156,10 +126,6 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
             ContentResolver.addPeriodicSync(account,
                     authority, new Bundle(), syncInterval);
         }
-    }
-
-    public void setShowNotification(boolean showNotif) {
-        showNotifications = showNotif;
     }
 
     public static void initializeSyncAdapter(Context ctx) {

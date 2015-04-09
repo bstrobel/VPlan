@@ -1,0 +1,78 @@
+package com.strobelb69.vplan;
+
+import android.app.IntentService;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
+
+public class VplanNotificationService extends IntentService {
+    public static final int NOTIFICATION_ID = 0;
+    public static final String CLEAR_NOTIFICATION_KEY = "clearNotification";
+    public static final String SHOW_NOTIFICATION_KEY = "showNotification";
+
+    public VplanNotificationService() {
+        super("VplanNotificationService");
+    }
+
+    public static void showNotification(Context ctx) {
+        Intent intent = new Intent(ctx, VplanNotificationService.class);
+        intent.setAction(VplanNotificationService.SHOW_NOTIFICATION_KEY);
+        ctx.startService(intent);
+    }
+
+    public static void clearNotification(Context ctx) {
+        Intent intent = new Intent(ctx, VplanNotificationService.class);
+        intent.setAction(VplanNotificationService.CLEAR_NOTIFICATION_KEY);
+        ctx.startService(intent);
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        if (intent != null) {
+            final String action = intent.getAction();
+            if (CLEAR_NOTIFICATION_KEY.equals(action)) {
+                clearNotification();
+            } else if (SHOW_NOTIFICATION_KEY.equals(action)) {
+                showNotification();
+            }
+        }
+    }
+
+    private void clearNotification() {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancel(NOTIFICATION_ID);
+    }
+
+
+    private void showNotification() {
+        Context ctx = getApplicationContext();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String notifKey = getString(R.string.prefKeySendNotification);
+
+        if (prefs.getBoolean(notifKey,true)) {
+            Intent mainIntent = new Intent(ctx, MainActivity.class);
+            mainIntent.setAction(CLEAR_NOTIFICATION_KEY);
+
+            TaskStackBuilder sb = TaskStackBuilder.create(ctx);
+            sb.addParentStack(MainActivity.class);
+            sb.addNextIntent(mainIntent);
+
+            PendingIntent pi = sb.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder nb = new NotificationCompat.Builder(ctx)
+                    .setSmallIcon(R.drawable.bs_icon_notification)
+                    .setContentTitle(getString(R.string.notificationTitle))
+                    .setContentText(getString(R.string.notificationText))
+                    .setContentIntent(pi);
+
+            NotificationManager nmgr =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nmgr.notify(NOTIFICATION_ID, nb.build());
+        }
+    }
+}
