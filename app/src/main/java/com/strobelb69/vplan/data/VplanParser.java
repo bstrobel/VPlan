@@ -5,29 +5,23 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.strobelb69.vplan.R;
-import com.strobelb69.vplan.util.Utils;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -50,26 +44,30 @@ public class VplanParser {
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
             Document planXml = new SAXBuilder().build(is);
             Element re = planXml.getRootElement();
-            if (checkNewAndGetKopf(ops, re.getChild("Kopf"))) {
-                Log.i(LT,"New data received. Data will be parsed and database will be udapted!");
+            boolean isNewData = checkNewAndGetKopf(ops, re.getChild("Kopf"));
+            if (isNewData) {
+                Log.i(LT, "New data received. Data will be parsed and database will be udapted!");
                 getFreieTage(ops, re.getChild("FreieTage"));
                 getKlassen(ops, re.getChild("Klassen"));
                 getZusatzinfo(ops, re.getChild("ZusatzInfo"));
-                crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
-                Log.i(LT,"New data received. Database udapted!");
+                Log.i(LT, "New data received. Updating database!");
+            }
+            crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
+            if (isNewData) {
                 logContentsDbTable(VplanContract.Kopf.TABLE_NAME, VplanContract.Kopf.CONTENT_URI);
                 logContentsDbTable(VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
                 logContentsDbTable(VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
                 logContentsDbTable(VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
-                return true;
             }
-        } catch (Exception e) {
-            Log.e(LT,e.getMessage() + " while parsing XML \nStackTrace:\n" + Utils.getStackTraceString(e));
+            return isNewData;
+        } catch (Exception ex) {
+            Log.e(LT,"Error while parsing XML!\n" + ex);
         }
         return false;
     }
 
-    private boolean checkNewAndGetKopf(ArrayList<ContentProviderOperation> ops, Element kopf) throws ParseException, RemoteException, OperationApplicationException {
+    private boolean checkNewAndGetKopf(ArrayList<ContentProviderOperation> ops, Element kopf)
+            throws ParseException, RemoteException, OperationApplicationException {
         long newTimeStamp = zeitstempelParser(kopf.getChildText("zeitstempel"));
         long oldTimeStamp = getOldTimeStamp();
         Log.d(LT,"newTimeStamp="+newTimeStamp+", oldTimeStamp="+oldTimeStamp);
@@ -80,13 +78,7 @@ public class VplanParser {
         cv.put(VplanContract.Kopf.COL_FOR_DATE, datumPlanParser(kopf.getChildText("DatumPlan")));
         cv.put(VplanContract.Kopf.COL_LAST_SYNC, new Date().getTime());
         ops.add(cpob.withValues(cv).build());
-        if (newTimeStamp != oldTimeStamp) {
-            return true;
-        } else {
-            crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
-            Log.i(LT,"No new data. No update of the database needed! Timestamp=" + newTimeStamp);
-            return false;
-        }
+        return newTimeStamp != oldTimeStamp;
     }
 
     private long zeitstempelParser(String z) throws ParseException {
@@ -95,13 +87,14 @@ public class VplanParser {
 
     private long getOldTimeStamp() {
         Cursor c = crslv.query(VplanContract.Kopf.CONTENT_URI,new String[]{VplanContract.Kopf.COL_TIMESTAMP},null,null,null);
-        if (c != null && c.moveToFirst()) {
-            long ts = c.getLong(0);
+        long ts = 0l;
+        if (c != null) {
+            if (c.moveToFirst()) {
+                ts = c.getLong(0);
+            }
             c.close();
-            return ts;
-        } else {
-            return 0l;
         }
+        return ts;
     }
 
     private long datumPlanParser(String z) throws ParseException {
@@ -242,6 +235,7 @@ public class VplanParser {
                 }
                 Log.d(LT,row.toString());
             }
+            c.close();
         } else {
             Log.d(LT, "Cursor for table " + tableName + " is NULL");
         }

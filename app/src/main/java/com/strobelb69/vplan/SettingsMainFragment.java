@@ -90,6 +90,7 @@ public class SettingsMainFragment extends PreferenceFragment implements SharedPr
                 }
             }
             kursScreen.setSummary(sb.toString());
+            c.close();
         }
     }
 }

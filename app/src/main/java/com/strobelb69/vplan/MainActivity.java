@@ -26,9 +26,9 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
     public final String LT=getClass().getSimpleName();
     public static final String VPFMT_TAG = "VPFMT_TAG";
     public static final int TITLE_LOADER = 0;
-    public static final int PLAN_LIST_LOADER = TITLE_LOADER+1;
-    public static final int TIMESTAMP_LOADER = TITLE_LOADER+2;
-    public static final int ZUSATZINFO_LOADER = TITLE_LOADER+3;
+    public static final int PLAN_LIST_LOADER = 1;
+    public static final int TIMESTAMP_LOADER = 2;
+    public static final int ZUSATZINFO_LOADER = 3;
     public static boolean prefDefDoppelstunde=true;
     private String currKlasse;
     private String klasseKey;
@@ -52,13 +52,13 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
         getSupportLoaderManager().initLoader(TITLE_LOADER,null,this);
         VplanSyncAdapter.initializeSyncAdapter(this);
         VplanSyncAdapter.syncImmediately(this);
-
-        // do as we were told!
-        if (VplanNotificationService.CLEAR_NOTIFICATION_KEY.equals(getIntent().getAction())) {
-            VplanNotificationService.clearNotification(this);
-        }
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        VplanNotificationService.clearNotification(this);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
