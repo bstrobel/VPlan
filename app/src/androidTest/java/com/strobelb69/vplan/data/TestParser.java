@@ -6,14 +6,6 @@ import android.net.Uri;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
-import com.strobelb69.vplan.R;
-import com.strobelb69.vplan.SettingsMainFragment;
-import com.strobelb69.vplan.net.VplanRetriever;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.Map;
-
 /**
  * Created by Bernd on 15.03.2015.
  */
@@ -27,9 +19,6 @@ public class TestParser extends AndroidTestCase {
 //        InputStream is = getClass().getResourceAsStream("com/strobelb69/vplan/data/Klassen.xml");
 //        assertNotNull("Test XML Klassen.xml nicht gefunden!",is);
 //        new VplanParser(mContext).retrievePlan(is);
-        VplanRetriever rt = new VplanRetriever(mContext);
-        rt.retrieveFromNet();
-
     }
 
     public void testQueryKlasseKurse() {

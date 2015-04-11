@@ -11,9 +11,9 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
 public class VplanNotificationService extends IntentService {
-    public static final int NOTIFICATION_ID = 0;
-    public static final String CLEAR_NOTIFICATION_KEY = "clearNotification";
-    public static final String SHOW_NOTIFICATION_KEY = "showNotification";
+    private static final int NOTIFICATION_ID = 0;
+    private static final String CLEAR_NOTIFICATION_KEY = "clearNotification";
+    private static final String SHOW_NOTIFICATION_KEY = "showNotification";
 
     public VplanNotificationService() {
         super("VplanNotificationService");
@@ -56,7 +56,6 @@ public class VplanNotificationService extends IntentService {
 
         if (prefs.getBoolean(notifKey,true)) {
             Intent mainIntent = new Intent(ctx, MainActivity.class);
-            mainIntent.setAction(CLEAR_NOTIFICATION_KEY);
 
             TaskStackBuilder sb = TaskStackBuilder.create(ctx);
             sb.addParentStack(MainActivity.class);
