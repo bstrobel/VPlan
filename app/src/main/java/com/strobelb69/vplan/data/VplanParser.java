@@ -26,6 +26,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
+ * Parses the XML data received from an InputStream into the database using a ContenProvider.
+ *
  * Created by Bernd on 14.03.2015.
  */
 public class VplanParser {
@@ -54,10 +56,10 @@ public class VplanParser {
             }
             crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
             if (isNewData) {
-                logContentsDbTable(VplanContract.Kopf.TABLE_NAME, VplanContract.Kopf.CONTENT_URI);
-                logContentsDbTable(VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
-                logContentsDbTable(VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
-                logContentsDbTable(VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
+                logContentsDbTable(ctx, LT, VplanContract.Kopf.TABLE_NAME, VplanContract.Kopf.CONTENT_URI);
+                logContentsDbTable(ctx, LT, VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
+                logContentsDbTable(ctx, LT, VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
+                logContentsDbTable(ctx, LT, VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
             }
             return isNewData;
         } catch (Exception ex) {
@@ -196,11 +198,18 @@ public class VplanParser {
         }
     }
 
-    private void logContentsDbTable(String tableName, Uri uri) {
-        Log.d(LT, "Logging contents of table " + tableName + ", URI=" + uri);
-        Cursor c = crslv.query(uri, null, null, null, null);
+    /**
+     * Logs the contents of a ContentProvider URI with level DEBUG
+     * @param ctx Context to retrieve the ContentResolver from
+     * @param LT Log tag
+     * @param queryDesc description of the query (for logging output only)
+     * @param uri URI to query
+     */
+    public static void logContentsDbTable(Context ctx, String LT, String queryDesc, Uri uri) {
+        Log.d(LT, "Logging contents for " + queryDesc + ", URI=" + uri);
+        Cursor c = ctx.getContentResolver().query(uri, null, null, null, null);
         if (c != null) {
-            Log.d(LT, "Size of table " + tableName + " is " + c.getCount());
+            Log.d(LT, "Size of query " + queryDesc + " is " + c.getCount());
             String[] colNames = c.getColumnNames();
             int colCount = c.getColumnCount();
             // print column header
@@ -214,7 +223,9 @@ public class VplanParser {
                 for (int i = 0; i < colCount; i++) {
                     switch (c.getType(i)) {
                         case Cursor.FIELD_TYPE_BLOB:
-                            row.append(c.getBlob(i));
+                            row.append("BLOB of byte[");
+                            row.append(c.getBlob(i).length);
+                            row.append("]");
                             break;
                         case Cursor.FIELD_TYPE_FLOAT:
                             row.append(c.getFloat(i));
@@ -237,7 +248,7 @@ public class VplanParser {
             }
             c.close();
         } else {
-            Log.d(LT, "Cursor for table " + tableName + " is NULL");
+            Log.d(LT, "Cursor is NULL for query " + queryDesc + ", URI=" + uri);
         }
 
     }

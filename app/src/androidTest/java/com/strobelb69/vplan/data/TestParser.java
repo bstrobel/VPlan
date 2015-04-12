@@ -6,19 +6,24 @@ import android.net.Uri;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
+import com.strobelb69.vplan.R;
+
+import java.io.InputStream;
+
 /**
+ * Tests whole Parser/Provider/Db subsystem
+ *
  * Created by Bernd on 15.03.2015.
  */
 public class TestParser extends AndroidTestCase {
     private final String LT = getClass().getSimpleName();
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-//        Das funktioniert nicht. Wahrscheinlich geht getResourceAsStream() nicht in Android
-//        oder es geht bei Tests nicht.
-//        InputStream is = getClass().getResourceAsStream("com/strobelb69/vplan/data/Klassen.xml");
-//        assertNotNull("Test XML Klassen.xml nicht gefunden!",is);
-//        new VplanParser(mContext).retrievePlan(is);
+        deleteOldTables();
+        InputStream is = mContext.getResources().openRawResource(R.raw.klassen);
+        new VplanParser(mContext).retrievePlan(is);
     }
 
     public void testQueryKlasseKurse() {
@@ -32,61 +37,12 @@ public class TestParser extends AndroidTestCase {
 
         Uri.Builder urib = uriKlasse.buildUpon();
         urib.appendQueryParameter(VplanContract.PARAM_KEY_KURS,kurs);
-        logContentsDbTable("Plan für "+klasse+" ohne Kurs "+kurs, urib.build());
-
-        logContentsDbTable("Plan für "+klasse , uriKlasse);
-        logContentsDbTable("Kurse für Klasse " + klasse, uriKurse);
+        VplanParser.logContentsDbTable(mContext, LT, "Plan für "+klasse+" ohne Kurs "+kurs, urib.build());
+        VplanParser.logContentsDbTable(mContext, LT, "Plan für "+klasse , uriKlasse);
+        VplanParser.logContentsDbTable(mContext, LT, "Kurse für Klasse " + klasse, uriKurse);
     }
 
-
-    private void logContentsDbTable(String tableName, Uri uri) {
-        Log.d(LT, "Logging contents of table " + tableName + ", URI=" + uri);
-        ContentResolver crslv = mContext.getContentResolver();
-        Cursor c = crslv.query(uri, null, null, null, null);
-        if (c != null) {
-            Log.d(LT, "Size of table " + tableName + " is " + c.getCount());
-            String[] colNames = c.getColumnNames();
-            int colCount = c.getColumnCount();
-            // print column header
-            StringBuilder sb = new StringBuilder();
-            for (String cn: colNames) {
-                sb.append(cn).append(" # ");
-            }
-            Log.d(LT,sb.toString());
-            while(c.moveToNext()) {
-                StringBuilder row =new StringBuilder();
-                for (int i = 0; i < colCount; i++) {
-                    switch (c.getType(i)) {
-                        case Cursor.FIELD_TYPE_BLOB:
-                            row.append(c.getBlob(i));
-                            break;
-                        case Cursor.FIELD_TYPE_FLOAT:
-                            row.append(c.getFloat(i));
-                            break;
-                        case Cursor.FIELD_TYPE_INTEGER:
-                            row.append(c.getInt(i));
-                            break;
-                        case Cursor.FIELD_TYPE_NULL:
-                            row.append("NULL");
-                            break;
-                        case Cursor.FIELD_TYPE_STRING:
-                            row.append(c.getString(i));
-                            break;
-                        default:
-                            row.append("UNKNOWN_COL_TYPE");
-                    }
-                    row.append(" # ");
-                }
-                Log.d(LT,row.toString());
-            }
-        } else {
-            Log.d(LT, "Cursor for table " + tableName + " is NULL");
-        }
-
-    }
-
-
-    public void NOtestToParse() {
+    public void testToParse() {
         ContentResolver cntrslv = mContext.getContentResolver();
         String keyKlasse = VplanContract.PARAM_KEY_KLASSE;
 
@@ -165,5 +121,16 @@ public class TestParser extends AndroidTestCase {
             );
         }
         crsPlan.close();
+    }
+
+    private void deleteOldTables() {
+        ContentResolver cr = mContext.getContentResolver();
+        cr.delete(VplanContract.Zusatzinfo.CONTENT_URI,null,null);
+        cr.delete(VplanContract.Plan.CONTENT_URI,null,null);
+        cr.delete(VplanContract.Kurse.CONTENT_URI,null,null);
+        cr.delete(VplanContract.Klassen.CONTENT_URI,null,null);
+        cr.delete(VplanContract.FreieTage.CONTENT_URI,null,null);
+        cr.delete(VplanContract.Kopf.CONTENT_URI,null,null);
+
     }
 }
