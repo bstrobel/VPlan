@@ -22,7 +22,7 @@ public class TestParser extends AndroidTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         deleteOldTables();
-        InputStream is = mContext.getResources().openRawResource(R.raw.klassen);
+        InputStream is = mContext.getResources().openRawResource(R.raw.klassen_org);
         new VplanParser(mContext).retrievePlan(is);
     }
 
