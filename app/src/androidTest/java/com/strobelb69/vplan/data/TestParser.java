@@ -67,6 +67,37 @@ public class TestParser extends AndroidTestCase {
         VplanParser.logContentsDbTable(mContext,LT,VplanContract.KlassenAktualisiert.TABLE_NAME,VplanContract.KlassenAktualisiert.CONTENT_URI);
     }
 
+    // TODO: noch mehr tests mit gelöschten zeilen, geänderten zeilen etc.
+    public void testUpdateZusInfo1() throws Exception{
+        deleteOldTables();
+        final InputStream is = mContext.getResources().openRawResource(R.raw.klassen_zus_inf);
+        new VplanParser(mContext).retrievePlan(is);
+        final InputStream is2 = mContext.getResources().openRawResource(R.raw.klassen_zus_inf_neu_zus_inf1);
+        new VplanParser(mContext).retrievePlan(is2);
+
+        Cursor klAktCrs = mContext
+                .getContentResolver()
+                .query(
+                        VplanContract.KlassenAktualisiert.CONTENT_URI,
+                        new String[]{VplanContract.KlassenAktualisiert.COL_KLASSE},
+                        null,
+                        null,
+                        VplanContract.KlassenAktualisiert.COL_KLASSE + " ASC");
+        assertEquals("Zuviele Daten in " + VplanContract.KlassenAktualisiert.TABLE_NAME, 0, klAktCrs.getCount());
+        klAktCrs.close();
+
+        Cursor zusInfoCrs = mContext
+                .getContentResolver()
+                .query(
+                        VplanContract.Zusatzinfo.CONTENT_URI,
+                        null,
+                        VplanContract.Zusatzinfo.COL_ZIZEILE_NEU + " = 1",
+                        null,
+                        null
+                );
+        assertTrue("Keine Aktualisierung in " + VplanContract.Zusatzinfo.TABLE_NAME, zusInfoCrs.getCount() > 0);
+    }
+
     public void testToParse() {
         deleteOldTables();
         InputStream is = mContext.getResources().openRawResource(R.raw.klassen_org);

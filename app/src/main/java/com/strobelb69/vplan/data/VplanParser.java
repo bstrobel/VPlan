@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ public class VplanParser {
                 getKopf(ops, kopf, isNeuerTag);
                 getFreieTage(ops, re.getChild("FreieTage"));
                 getKlassen(ops, re.getChild("Klassen"), isNeuerTag);
-                getZusatzinfo(ops, re.getChild("ZusatzInfo"));
+                getZusatzinfo(ops, re.getChild("ZusatzInfo"), isNeuerTag);
                 Log.i(LT, "New data received. Updating database!");
             }
             crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
@@ -224,9 +225,9 @@ public class VplanParser {
                                     VplanContract.Plan.COL_INF,
                             },
                             VplanContract.Plan.COL_STUNDE + " = ?" +
-                            " AND " +
-                            VplanContract.Plan.COL_FACH + " = ?",
-                            new String[]{stXml,faXml},
+                                    " AND " +
+                                    VplanContract.Plan.COL_FACH + " = ?",
+                            new String[]{stXml, faXml},
                             null);
                     if (stdCursor != null) {
                         if (BuildConfig.DEBUG) {
@@ -274,18 +275,42 @@ public class VplanParser {
         }
     }
 
-    private void getZusatzinfo(ArrayList<ContentProviderOperation> ops, Element zusatzinfo) throws ParseException {
-        crslv.delete(VplanContract.Zusatzinfo.CONTENT_URI, null, null);
+    private void getZusatzinfo(ArrayList<ContentProviderOperation> ops, Element zusatzinfo, boolean isNeuerTag) throws ParseException {
+        ops.add(ContentProviderOperation.newDelete(VplanContract.Zusatzinfo.CONTENT_URI).build());
+        Cursor c = crslv.query(VplanContract.Zusatzinfo.CONTENT_URI, null, null, null, null);
         if (zusatzinfo == null) {
-            return;
+            if (!isNeuerTag) {
+                if (c != null && c.getCount()>0) {
+                    // add a dummy line with the NEU flag set
+                    ContentValues cv = new ContentValues();
+                    cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE, "");
+                    cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE_NEU, true);
+                    ContentProviderOperation.Builder cpobZ = ContentProviderOperation.newInsert(VplanContract.Zusatzinfo.CONTENT_URI);
+                    cpobZ.withValues(cv);
+                    ops.add(cpobZ.build());
+                }
+            }
+        } else {
+            List<Element> zeilen = zusatzinfo.getChildren("ZiZeile");
+            int count = c == null ? 0 : c.getCount();
+            boolean isAktualisiert = zeilen.size() != count;
+            for (Element zizeile : zeilen) {
+                String zeile = zizeile.getText();
+                if (c != null && c.moveToNext()) {
+                    if (!c.getString(1).equals(zeile)) {
+                        isAktualisiert = true;
+                    }
+                }
+                ContentValues cv = new ContentValues();
+                cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE, zeile);
+                cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE_NEU, isAktualisiert);
+                ContentProviderOperation.Builder cpobZ = ContentProviderOperation.newInsert(VplanContract.Zusatzinfo.CONTENT_URI);
+                cpobZ.withValues(cv);
+                ops.add(cpobZ.build());
+            }
         }
-        for (Element zizeile: zusatzinfo.getChildren("ZiZeile")) {
-            ContentValues cv = new ContentValues();
-            cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE, zizeile.getText());
-            cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE_NEU, true);
-            ContentProviderOperation.Builder cpobZ = ContentProviderOperation.newInsert(VplanContract.Zusatzinfo.CONTENT_URI);
-            cpobZ.withValues(cv);
-            ops.add(cpobZ.build());
+        if (c != null) {
+            c.close();
         }
     }
 
