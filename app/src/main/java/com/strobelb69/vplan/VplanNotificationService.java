@@ -6,9 +6,13 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+
+import com.strobelb69.vplan.data.VplanContract;
+import com.strobelb69.vplan.data.VplanParser;
 
 public class VplanNotificationService extends IntentService {
     private static final int NOTIFICATION_ID = 0;
@@ -54,7 +58,7 @@ public class VplanNotificationService extends IntentService {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String notifKey = getString(R.string.prefKeySendNotification);
 
-        if (prefs.getBoolean(notifKey,true)) {
+        if (prefs.getBoolean(notifKey,true) && isNewDataForKlasseOrZusInfo(ctx, prefs)) {
             Intent mainIntent = new Intent(ctx, MainActivity.class);
 
             TaskStackBuilder sb = TaskStackBuilder.create(ctx);
@@ -73,5 +77,21 @@ public class VplanNotificationService extends IntentService {
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             nmgr.notify(NOTIFICATION_ID, nb.build());
         }
+    }
+
+    private boolean isNewDataForKlasseOrZusInfo(Context ctx, SharedPreferences prefs) {
+        String klasse = prefs.getString(getString(R.string.prefKeyKlasse),"XXX");
+        Cursor klAktCrs = ctx.getContentResolver().query(
+                VplanContract.KlassenAktualisiert.CONTENT_URI,
+                null,
+                VplanContract.KlassenAktualisiert.COL_KLASSE + " IN (?,?)",
+                new String[]{klasse, VplanParser.ZUSINFO_TAG},
+                null);
+        boolean returnVal = false;
+        if (klAktCrs !=null) {
+            returnVal = klAktCrs.getCount() > 0;
+            klAktCrs.close();
+        }
+        return returnVal;
     }
 }
