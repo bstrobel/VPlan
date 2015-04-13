@@ -23,10 +23,11 @@ public class TestParser extends AndroidTestCase {
         super.setUp();
     }
 
-    public void testQueryKlasseKurse() {
+    public void testQueryKlasseKurse() throws Exception {
         deleteOldTables();
         InputStream is = mContext.getResources().openRawResource(R.raw.klassen_org);
-        new VplanParser(mContext).retrievePlan(is);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is));
+        is.close();
         String klasse = "8c";
         String kurs = "GEWI_1";
 //        String klasse = "5b";
@@ -37,18 +38,22 @@ public class TestParser extends AndroidTestCase {
 
         Uri.Builder urib = uriKlasse.buildUpon();
         urib.appendQueryParameter(VplanContract.PARAM_KEY_KURS,kurs);
-        VplanParser.logContentsDbTable(mContext, LT, "Plan für "+klasse+" ohne Kurs "+kurs, urib.build());
-        VplanParser.logContentsDbTable(mContext, LT, "Plan für "+klasse , uriKlasse);
-        VplanParser.logContentsDbTable(mContext, LT, "Kurse für Klasse " + klasse, uriKurse);
+        StringBuilder sb = new StringBuilder();
+        VplanParser.logContentsDbTable(mContext, sb, "Plan für "+klasse+" ohne Kurs "+kurs, urib.build());
+        VplanParser.logContentsDbTable(mContext, sb, "Plan für "+klasse , uriKlasse);
+        VplanParser.logContentsDbTable(mContext, sb, "Kurse für Klasse " + klasse, uriKurse);
+        System.out.println(sb.toString());
         deleteOldTables();
     }
 
     public void testUpdate() throws Exception{
         deleteOldTables();
         final InputStream is = mContext.getResources().openRawResource(R.raw.klassen_zus_inf);
-        new VplanParser(mContext).retrievePlan(is);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is));
+        is.close();
         final InputStream is2 = mContext.getResources().openRawResource(R.raw.klassen_zus_inf_upd_same_day);
-        new VplanParser(mContext).retrievePlan(is2);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is2));
+        is2.close();
 
         Cursor klAktCrs = mContext
                 .getContentResolver()
@@ -58,22 +63,37 @@ public class TestParser extends AndroidTestCase {
                         null,
                         null,
                         VplanContract.KlassenAktualisiert.COL_KLASSE + " ASC");
+        StringBuilder sb = new StringBuilder();
+        VplanParser.logContentsDbTable(mContext, sb, VplanContract.KlassenAktualisiert.TABLE_NAME, VplanContract.KlassenAktualisiert.CONTENT_URI);
         assertTrue("Erste Zeile nicht vorhanden!", klAktCrs.moveToNext());
-        assertEquals("Klasse 5a erwartet","5a",klAktCrs.getString(0));
+        assertEquals("Klasse 5a erwartet", "5a", klAktCrs.getString(0));
         assertTrue("Zweite Zeile nicht vorhanden!", klAktCrs.moveToNext());
-        assertEquals("Klasse 5b erwartet","5b",klAktCrs.getString(0));
-        assertEquals("Zuviele Daten in " + VplanContract.KlassenAktualisiert.TABLE_NAME, 2, klAktCrs.getCount());
+        assertEquals("Klasse 5b erwartet", "5b", klAktCrs.getString(0));
+        assertEquals("Zuviele Daten in " + VplanContract.KlassenAktualisiert.TABLE_NAME + "\n" + sb.toString(), 2, klAktCrs.getCount());
         klAktCrs.close();
-        VplanParser.logContentsDbTable(mContext,LT,VplanContract.KlassenAktualisiert.TABLE_NAME,VplanContract.KlassenAktualisiert.CONTENT_URI);
+        System.out.println(sb.toString());
+        deleteOldTables();
     }
 
-    // TODO: noch mehr tests mit gelöschten zeilen, geänderten zeilen etc.
+    public void testNoUpdate() throws Exception {
+        deleteOldTables();
+        final InputStream is = mContext.getResources().openRawResource(R.raw.klassen_zus_inf);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is));
+        is.close();
+        final InputStream is2 = mContext.getResources().openRawResource(R.raw.klassen_zus_inf);
+        assertFalse("retrievePlan() hat nicht falsereturned beim 2. Mal Einlesen!", new VplanParser(mContext).retrievePlan(is2));
+        is.close();
+        deleteOldTables();
+    }
+
     public void testUpdateZusInfo1() throws Exception{
         deleteOldTables();
         final InputStream is = mContext.getResources().openRawResource(R.raw.klassen_zus_inf);
-        new VplanParser(mContext).retrievePlan(is);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is));
+        is.close();
         final InputStream is2 = mContext.getResources().openRawResource(R.raw.klassen_zus_inf_neu_zus_inf1);
-        new VplanParser(mContext).retrievePlan(is2);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is2));
+        is2.close();
 
         Cursor klAktCrs = mContext
                 .getContentResolver()
@@ -83,31 +103,36 @@ public class TestParser extends AndroidTestCase {
                         null,
                         null,
                         VplanContract.KlassenAktualisiert.COL_KLASSE + " ASC");
-        assertEquals("Zuviele Daten in " + VplanContract.KlassenAktualisiert.TABLE_NAME, 0, klAktCrs.getCount());
+        assertEquals("Zuviele Daten in " + VplanContract.KlassenAktualisiert.TABLE_NAME, 1, klAktCrs.getCount());
         klAktCrs.close();
 
-        Cursor zusInfoCrs = mContext
+        Cursor klAktCrs2 = mContext
                 .getContentResolver()
                 .query(
-                        VplanContract.Zusatzinfo.CONTENT_URI,
-                        null,
-                        VplanContract.Zusatzinfo.COL_ZIZEILE_NEU + " = 1",
-                        null,
-                        null
-                );
-        assertTrue("Keine Aktualisierung in " + VplanContract.Zusatzinfo.TABLE_NAME, zusInfoCrs.getCount() > 0);
+                        VplanContract.KlassenAktualisiert.CONTENT_URI,
+                        new String[]{VplanContract.KlassenAktualisiert.COL_KLASSE},
+                        VplanContract.KlassenAktualisiert.COL_KLASSE + "= ?",
+                        new String[]{VplanParser.ZUSINFO_TAG},
+                        null);
+        assertEquals(
+                VplanParser.ZUSINFO_TAG +
+                        " nicht eingefuegt in " +
+                        VplanContract.KlassenAktualisiert.TABLE_NAME, 1, klAktCrs2.getCount());
+        klAktCrs2.close();
+
     }
 
-    public void testToParse() {
+    public void testToParse() throws Exception {
         deleteOldTables();
         InputStream is = mContext.getResources().openRawResource(R.raw.klassen_org);
-        new VplanParser(mContext).retrievePlan(is);
+        assertTrue("retrievePlan() hat nicht true returned!", new VplanParser(mContext).retrievePlan(is));
+        is.close();
         ContentResolver cntrslv = mContext.getContentResolver();
         String keyKlasse = VplanContract.PARAM_KEY_KLASSE;
 
         Cursor crsKopf = cntrslv.query(VplanContract.Kopf.CONTENT_URI,null,null,null,null);
         assertTrue(crsKopf.isBeforeFirst());
-        assertTrue("Tabelle kopf nicht gefüllt!", crsKopf.getCount() == 1);
+        assertTrue("Tabelle kopf nicht gefüllt: " + getTableAsString("kopf",VplanContract.Kopf.CONTENT_URI), crsKopf.getCount() == 1);
         crsKopf.close();
 
         Cursor crsFreieTage = cntrslv.query(VplanContract.FreieTage.CONTENT_URI,null,null,null,null);
@@ -181,6 +206,12 @@ public class TestParser extends AndroidTestCase {
         }
         crsPlan.close();
         deleteOldTables();
+    }
+
+    private String getTableAsString(String desc, Uri uri) {
+        StringBuilder sb = new StringBuilder();
+        VplanParser.logContentsDbTable(mContext, sb, desc, uri);
+        return sb.toString();
     }
 
     private void deleteOldTables() {

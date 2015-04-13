@@ -36,6 +36,7 @@ public class VplanParser {
     private final Context ctx;
     private final ContentResolver crslv;
     private final String LT = getClass().getSimpleName();
+    public static final String ZUSINFO_TAG = "_ZUSATZINFO_";
 
     public VplanParser(Context ctx) {
         super();
@@ -65,13 +66,15 @@ public class VplanParser {
                 Log.i(LT, "New data received. Updating database!");
             }
             crslv.applyBatch(ctx.getString(R.string.vplan_provider_authority),ops);
-            if (isNewData) {
-                logContentsDbTable(ctx, LT, VplanContract.Kopf.TABLE_NAME, VplanContract.Kopf.CONTENT_URI);
-                logContentsDbTable(ctx, LT, VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
-                logContentsDbTable(ctx, LT, VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
-                logContentsDbTable(ctx, LT, VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
-                logContentsDbTable(ctx, LT, VplanContract.Zusatzinfo.TABLE_NAME, VplanContract.Zusatzinfo.CONTENT_URI);
-                logContentsDbTable(ctx, LT, VplanContract.KlassenAktualisiert.TABLE_NAME, VplanContract.KlassenAktualisiert.CONTENT_URI);
+            if (BuildConfig.DEBUG && isNewData) {
+                StringBuilder logSb = new StringBuilder();
+                logContentsDbTable(ctx, logSb, VplanContract.Kopf.TABLE_NAME, VplanContract.Kopf.CONTENT_URI);
+                logContentsDbTable(ctx, logSb, VplanContract.Klassen.TABLE_NAME, VplanContract.Klassen.CONTENT_URI);
+                logContentsDbTable(ctx, logSb, VplanContract.Kurse.TABLE_NAME, VplanContract.Kurse.CONTENT_URI);
+                logContentsDbTable(ctx, logSb, VplanContract.Plan.TABLE_NAME, VplanContract.Plan.CONTENT_URI);
+                logContentsDbTable(ctx, logSb, VplanContract.Zusatzinfo.TABLE_NAME, VplanContract.Zusatzinfo.CONTENT_URI);
+                logContentsDbTable(ctx, logSb, VplanContract.KlassenAktualisiert.TABLE_NAME, VplanContract.KlassenAktualisiert.CONTENT_URI);
+                Log.d(LT, logSb.toString());
             }
             return isNewData;
         } catch (Exception ex) {
@@ -275,43 +278,54 @@ public class VplanParser {
         }
     }
 
-    private void getZusatzinfo(ArrayList<ContentProviderOperation> ops, Element zusatzinfo, boolean isNeuerTag) throws ParseException {
+    private void getZusatzinfo(
+            List<ContentProviderOperation> ops,
+            Element zusatzinfo,
+            boolean isNeuerTag)
+            throws ParseException {
         ops.add(ContentProviderOperation.newDelete(VplanContract.Zusatzinfo.CONTENT_URI).build());
         Cursor c = crslv.query(VplanContract.Zusatzinfo.CONTENT_URI, null, null, null, null);
-        if (zusatzinfo == null) {
-            if (!isNeuerTag) {
-                if (c != null && c.getCount()>0) {
-                    // add a dummy line with the NEU flag set
-                    ContentValues cv = new ContentValues();
-                    cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE, "");
-                    cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE_NEU, true);
-                    ContentProviderOperation.Builder cpobZ = ContentProviderOperation.newInsert(VplanContract.Zusatzinfo.CONTENT_URI);
-                    cpobZ.withValues(cv);
-                    ops.add(cpobZ.build());
+        int count = c == null ? 0 : c.getCount();
+
+        if (zusatzinfo == null
+                && !isNeuerTag
+                && c != null
+                && c.getCount()>0) {
+            insZusInfoTag(ops);
+        } else {
+            boolean isUpdate = false;
+            if (zusatzinfo != null) {
+                List<Element> zeilen = zusatzinfo.getChildren("ZiZeile");
+                if (zeilen.size() != count) {
+                    isUpdate = true;
+                }
+                for (Element zizeile : zeilen) {
+                    String zeile = zizeile.getText();
+                    if (c != null
+                            && c.moveToNext()
+                            && !c.getString(1).equals(zeile)) {
+                        isUpdate = true;
+                    }
+                    ops.add(ContentProviderOperation
+                            .newInsert(VplanContract.Zusatzinfo.CONTENT_URI)
+                            .withValue(VplanContract.Zusatzinfo.COL_ZIZEILE, zeile)
+                            .build());
                 }
             }
-        } else {
-            List<Element> zeilen = zusatzinfo.getChildren("ZiZeile");
-            int count = c == null ? 0 : c.getCount();
-            boolean isAktualisiert = zeilen.size() != count;
-            for (Element zizeile : zeilen) {
-                String zeile = zizeile.getText();
-                if (c != null && c.moveToNext()) {
-                    if (!c.getString(1).equals(zeile)) {
-                        isAktualisiert = true;
-                    }
-                }
-                ContentValues cv = new ContentValues();
-                cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE, zeile);
-                cv.put(VplanContract.Zusatzinfo.COL_ZIZEILE_NEU, isAktualisiert);
-                ContentProviderOperation.Builder cpobZ = ContentProviderOperation.newInsert(VplanContract.Zusatzinfo.CONTENT_URI);
-                cpobZ.withValues(cv);
-                ops.add(cpobZ.build());
+            if (isUpdate) {
+                insZusInfoTag(ops);
             }
         }
         if (c != null) {
             c.close();
         }
+    }
+
+    private void insZusInfoTag(List<ContentProviderOperation> ops) {
+        ops.add(ContentProviderOperation
+                .newInsert(VplanContract.KlassenAktualisiert.CONTENT_URI)
+                .withValue(VplanContract.KlassenAktualisiert.COL_KLASSE, ZUSINFO_TAG)
+                .build());
     }
 
     private boolean isNeu(Element el, String attrName) {
@@ -329,54 +343,64 @@ public class VplanParser {
     /**
      * Logs the contents of a ContentProvider URI with level DEBUG
      * @param ctx Context to retrieve the ContentResolver from
-     * @param LT Log tag
+     * @param sbAppend StringBuilder to which the data is appended
      * @param queryDesc description of the query (for logging output only)
      * @param uri URI to query
      */
-    public static void logContentsDbTable(Context ctx, String LT, String queryDesc, Uri uri) {
-        Log.d(LT, "Logging contents for " + queryDesc + ", URI=" + uri);
+    public static void logContentsDbTable(
+            Context ctx, StringBuilder sbAppend, String queryDesc, Uri uri) {
+        sbAppend
+                .append("Logging contents for ")
+                .append(queryDesc)
+                .append(", URI=")
+                .append(uri)
+                .append("\n");
         Cursor c = ctx.getContentResolver().query(uri, null, null, null, null);
         if (c != null) {
-            Log.d(LT, "Size of query " + queryDesc + " is " + c.getCount());
+            sbAppend
+                    .append("Size of query ")
+                    .append(queryDesc)
+                    .append(" is ")
+                    .append(c.getCount())
+                    .append("\n");
             String[] colNames = c.getColumnNames();
             int colCount = c.getColumnCount();
             // print column header
-            StringBuilder sb = new StringBuilder();
             for (String cn: colNames) {
-                sb.append(cn).append(" # ");
+                sbAppend.append(cn).append(" # ");
             }
-            Log.d(LT,sb.toString());
+            sbAppend.append("\n");
             while(c.moveToNext()) {
-                StringBuilder row =new StringBuilder();
                 for (int i = 0; i < colCount; i++) {
                     switch (c.getType(i)) {
                         case Cursor.FIELD_TYPE_BLOB:
-                            row.append("BLOB of byte[");
-                            row.append(c.getBlob(i).length);
-                            row.append("]");
+                            sbAppend.append("BLOB of byte[");
+                            sbAppend.append(c.getBlob(i).length);
+                            sbAppend.append("]");
                             break;
                         case Cursor.FIELD_TYPE_FLOAT:
-                            row.append(c.getFloat(i));
+                            sbAppend.append(c.getFloat(i));
                             break;
                         case Cursor.FIELD_TYPE_INTEGER:
-                            row.append(c.getInt(i));
+                            sbAppend.append(c.getInt(i));
                             break;
                         case Cursor.FIELD_TYPE_NULL:
-                            row.append("NULL");
+                            sbAppend.append("NULL");
                             break;
                         case Cursor.FIELD_TYPE_STRING:
-                            row.append(c.getString(i));
+                            sbAppend.append(c.getString(i));
                             break;
                         default:
-                            row.append("UNKNOWN_COL_TYPE");
+                            sbAppend.append("UNKNOWN_COL_TYPE");
                     }
-                    row.append(" # ");
+                    sbAppend.append(" # ");
                 }
-                Log.d(LT,row.toString());
+                sbAppend.append("\n");
             }
             c.close();
         } else {
-            Log.d(LT, "Cursor is NULL for query " + queryDesc + ", URI=" + uri);
+            sbAppend.append("Cursor is NULL for query ")
+                    .append(queryDesc).append(", URI=").append(uri).append("\n");
         }
 
     }

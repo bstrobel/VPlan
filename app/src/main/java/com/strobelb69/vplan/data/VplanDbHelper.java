@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Bernd on 14.03.2015.
  */
 public class VplanDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "vplan.db";
 
     public VplanDbHelper(Context context) {
@@ -81,13 +81,14 @@ public class VplanDbHelper extends SQLiteOpenHelper {
                 VplanContract.Kurse.TABLE_NAME + " (" + VplanContract.Kurse._ID + ") " +
                 ")";
 
-        final String SQL_CREATE_ZUSATZINFO = CREATE_TABLE + VplanContract.Zusatzinfo.TABLE_NAME + "(" +
+        final String SQL_CREATE_ZUSATZINFO = CREATE_TABLE +
+                VplanContract.Zusatzinfo.TABLE_NAME + "(" +
                 VplanContract.Zusatzinfo._ID + INTEGER_PRIMARY_KEY + "," +
-                VplanContract.Zusatzinfo.COL_ZIZEILE + TEXT_NOT_NULL + "," +
-                VplanContract.Zusatzinfo.COL_ZIZEILE_NEU + BOOLEAN_NOT_NULL +
+                VplanContract.Zusatzinfo.COL_ZIZEILE + TEXT_NOT_NULL +
                 ")";
 
-        final String SQL_CREATE_KLASSEN_AKTUALISIERT = CREATE_TABLE + VplanContract.KlassenAktualisiert.TABLE_NAME + "(" +
+        final String SQL_CREATE_KLASSEN_AKTUALISIERT = CREATE_TABLE +
+                VplanContract.KlassenAktualisiert.TABLE_NAME + "(" +
                 VplanContract.KlassenAktualisiert._ID + INTEGER_PRIMARY_KEY + "," +
                 VplanContract.KlassenAktualisiert.COL_KLASSE + TEXT_UNIQUE_NOT_NULL +
                 ")";

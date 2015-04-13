@@ -92,7 +92,6 @@ public class VplanContract {
         // actual contract fields and names
         public static final String TABLE_NAME = PATH_ZUSATZINFO;
         public static final String COL_ZIZEILE= "zizeile";
-        public static final String COL_ZIZEILE_NEU= "zizeile_neu";
     }
 
     public static final class KlassenAktualisiert implements BaseColumns {
