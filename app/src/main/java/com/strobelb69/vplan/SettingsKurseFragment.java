@@ -12,6 +12,8 @@ import android.preference.PreferenceScreen;
 import com.strobelb69.vplan.data.VplanContract;
 
 /**
+ * Creates dynamically a PreferenceFragment with a list of available Kurse for the Klasse
+ *
  * Created by bstrobel on 20.03.2015.
  */
 public class SettingsKurseFragment extends PreferenceFragment {
@@ -28,7 +30,12 @@ public class SettingsKurseFragment extends PreferenceFragment {
                 .appendQueryParameter(VplanContract.PARAM_KEY_KLASSE, klasse)
                 .build();
 
-        Cursor c = getActivity().getContentResolver().query(uriKurseFuerKlasse, new String[]{VplanContract.Kurse.COL_KURS, VplanContract.Kurse.COL_LEHRER}, null, null, null);
+        Cursor c = getActivity()
+                .getContentResolver()
+                .query(
+                        uriKurseFuerKlasse,
+                        new String[]{VplanContract.Kurse.COL_KURS, VplanContract.Kurse.COL_LEHRER},
+                        null, null, null);
         if (c!=null) {
             while (c.moveToNext()) {
                 String kurs = c.getString(0);
@@ -40,6 +47,7 @@ public class SettingsKurseFragment extends PreferenceFragment {
                 cbp.setChecked(isSelected);
                 kursScreen.addPreference(cbp);
             }
+            c.close();
         }
         setPreferenceScreen(kursScreen);
    }

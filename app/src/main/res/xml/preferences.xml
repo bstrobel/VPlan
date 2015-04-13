@@ -23,4 +23,8 @@
         android:summary="@string/prefSummarySendNotification"
         android:key="@string/prefKeySendNotification"
         android:defaultValue="true"/>
+    <SwitchPreference
+        android:title="@string/prefTitleDoSyncAutomatically"
+        android:key="@string/prefKeyDoSyncAutomatically"
+        android:defaultValue="true"/>
 </PreferenceScreen>

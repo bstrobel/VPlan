@@ -24,12 +24,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
+ * SyncAdapter that synchronizes the ContentProvider with data from the Internet.
  * Created by bstrobel on 18.03.2015.
  */
 public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
-
-    public static final int DEF_SYNCINTERVAL = 30 * 60;
-    public static final int DEF_FLEXTIME = DEF_SYNCINTERVAL /3;
 
     private final String LT = getClass().getSimpleName();
 
@@ -92,50 +90,5 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
         } catch (IOException ex) {
             Log.i(LT, "Setting up HTTP cache failed!\n" + ex);
         }
-    }
-
-    public static void syncImmediately(Context ctx) {
-        Bundle b = new Bundle();
-        b.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-        b.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-        ContentResolver.requestSync(getSyncAccount(ctx), ctx.getString(R.string.vplan_provider_authority), b);
-    }
-
-    public static Account getSyncAccount(Context ctx) {
-        AccountManager mgr = (AccountManager) ctx.getSystemService(Context.ACCOUNT_SERVICE);
-        Account acc = new Account(ctx.getString(R.string.app_name),ctx.getString(R.string.vplan_authenticator_account_type));
-        if (mgr.getPassword(acc) == null) {
-            if (!mgr.addAccountExplicitly(acc, "", null)) {
-                return null;
-            }
-            onAccountCreated(acc, ctx);
-        }
-        return acc;
-    }
-
-    private static void onAccountCreated(Account acc, Context ctx) {
-        configurePeriodicSync(ctx, DEF_SYNCINTERVAL, DEF_FLEXTIME);
-        ContentResolver.setSyncAutomatically(acc,ctx.getString(R.string.vplan_provider_authority),true);
-        syncImmediately(ctx);
-    }
-
-    public static void configurePeriodicSync(Context ctx, int syncInterval, int flexTime) {
-        Account account = getSyncAccount(ctx);
-        String authority = ctx.getString(R.string.vplan_provider_authority);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // we can enable inexact timers in our periodic sync
-            SyncRequest request = new SyncRequest.Builder().
-                    syncPeriodic(syncInterval, flexTime).
-                    setSyncAdapter(account, authority).
-                    setExtras(new Bundle()).build();
-            ContentResolver.requestSync(request);
-        } else {
-            ContentResolver.addPeriodicSync(account,
-                    authority, new Bundle(), syncInterval);
-        }
-    }
-
-    public static void initializeSyncAdapter(Context ctx) {
-        getSyncAccount(ctx);
     }
 }
