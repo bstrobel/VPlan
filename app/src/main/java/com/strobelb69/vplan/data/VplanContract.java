@@ -18,6 +18,7 @@ public class VplanContract {
     public static final String PATH_KLASSEN = "klassen";
     public static final String PATH_PLAN = "plan";
     public static final String PATH_ZUSATZINFO = "zusatzinfo";
+    public static final String PATH_KLASSEN_AKTUALISIERT = "klassenAktualisiert";
     public static final String PARAM_KEY_KOMP_DOPPELSTD = "komprDplStd";
     public static final String PARAM_KEY_KLASSE = "klasse";
     public static final String PARAM_KEY_KURS = "kurs";
@@ -31,6 +32,7 @@ public class VplanContract {
         public static final String COL_TIMESTAMP = "zeitstempel";
         public static final String COL_FOR_DATE = "datumplan";
         public static final String COL_LAST_SYNC = "lastsync";
+        public static final String COL_NEUER_TAG = "neuer_tag";
     }
 
     public static final class FreieTage implements BaseColumns {
@@ -90,5 +92,16 @@ public class VplanContract {
         // actual contract fields and names
         public static final String TABLE_NAME = PATH_ZUSATZINFO;
         public static final String COL_ZIZEILE= "zizeile";
+    }
+
+    public static final class KlassenAktualisiert implements BaseColumns {
+        // content provider stuff
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_KLASSEN_AKTUALISIERT).build();
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_KLASSEN_AKTUALISIERT;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_KLASSEN_AKTUALISIERT;
+        // actual contract fields and names
+        public static final String TABLE_NAME = PATH_KLASSEN_AKTUALISIERT;
+        public static final String COL_KLASSE= "klasse";
+
     }
 }

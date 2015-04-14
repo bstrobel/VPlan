@@ -5,10 +5,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
+ * Helper for the central datastore of the app
+ *
  * Created by Bernd on 14.03.2015.
  */
 public class VplanDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "vplan.db";
 
     public VplanDbHelper(Context context) {
@@ -31,13 +33,15 @@ public class VplanDbHelper extends SQLiteOpenHelper {
         final String INTEGER_UNIQUE_NOT_NULL = " INTEGER UNIQUE NOT NULL";
         final String TEXT = " TEXT";
         final String TEXT_NOT_NULL = " TEXT NOT NULL";
+        final String TEXT_UNIQUE_NOT_NULL = " TEXT UNIQUE NOT NULL";
         final String BOOLEAN_NOT_NULL = " BOOLEAN NOT NULL";
 
         final String SQL_CREATE_VPLANSTATE = CREATE_TABLE + VplanContract.Kopf.TABLE_NAME + "(" +
                 VplanContract.Kopf._ID + INTEGER_PRIMARY_KEY + "," +
                 VplanContract.Kopf.COL_TIMESTAMP + INTEGER_UNIQUE_NOT_NULL + "," +
                 VplanContract.Kopf.COL_FOR_DATE + INTEGER_UNIQUE_NOT_NULL + "," +
-                VplanContract.Kopf.COL_LAST_SYNC + INTEGER_UNIQUE_NOT_NULL +
+                VplanContract.Kopf.COL_LAST_SYNC + INTEGER_UNIQUE_NOT_NULL + "," +
+                VplanContract.Kopf.COL_NEUER_TAG + BOOLEAN_NOT_NULL +
                 ")";
 
         final String SQL_CREATE_FREIETAGE = CREATE_TABLE + VplanContract.FreieTage.TABLE_NAME + "(" +
@@ -77,9 +81,16 @@ public class VplanDbHelper extends SQLiteOpenHelper {
                 VplanContract.Kurse.TABLE_NAME + " (" + VplanContract.Kurse._ID + ") " +
                 ")";
 
-        final String SQL_CREATE_ZUSATZINFO = CREATE_TABLE + VplanContract.Zusatzinfo.TABLE_NAME + "(" +
+        final String SQL_CREATE_ZUSATZINFO = CREATE_TABLE +
+                VplanContract.Zusatzinfo.TABLE_NAME + "(" +
                 VplanContract.Zusatzinfo._ID + INTEGER_PRIMARY_KEY + "," +
                 VplanContract.Zusatzinfo.COL_ZIZEILE + TEXT_NOT_NULL +
+                ")";
+
+        final String SQL_CREATE_KLASSEN_AKTUALISIERT = CREATE_TABLE +
+                VplanContract.KlassenAktualisiert.TABLE_NAME + "(" +
+                VplanContract.KlassenAktualisiert._ID + INTEGER_PRIMARY_KEY + "," +
+                VplanContract.KlassenAktualisiert.COL_KLASSE + TEXT_UNIQUE_NOT_NULL +
                 ")";
 
         db.execSQL(SQL_CREATE_VPLANSTATE);
@@ -88,10 +99,12 @@ public class VplanDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_KURSE);
         db.execSQL(SQL_CREATE_PLAN);
         db.execSQL(SQL_CREATE_ZUSATZINFO);
+        db.execSQL(SQL_CREATE_KLASSEN_AKTUALISIERT);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + VplanContract.KlassenAktualisiert.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + VplanContract.Zusatzinfo.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + VplanContract.Kopf.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + VplanContract.FreieTage.TABLE_NAME);

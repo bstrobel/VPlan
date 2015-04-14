@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Content Provider for the central data store of the app
  * Created by Bernd on 14.03.2015.
  */
 public class VplanProvider extends ContentProvider {
@@ -27,6 +28,7 @@ public class VplanProvider extends ContentProvider {
     public static final int KURSE = 400;
     public static final int PLAN = 600;
     public static final int ZUSATZINFO = 800;
+    public static final int KLASSEN_AKTUALISIERT = 900;
 
     private VplanDbHelper dbHelper;
     private static final SQLiteQueryBuilder qbPlanFuerKlasseUndKurse;
@@ -74,6 +76,7 @@ public class VplanProvider extends ContentProvider {
         m.addURI(auth,VplanContract.PATH_KURSE,KURSE);
         m.addURI(auth,VplanContract.PATH_PLAN,PLAN);
         m.addURI(auth,VplanContract.PATH_ZUSATZINFO,ZUSATZINFO);
+        m.addURI(auth,VplanContract.PATH_KLASSEN_AKTUALISIERT,KLASSEN_AKTUALISIERT);
         return m;
     }
 
@@ -155,6 +158,15 @@ public class VplanProvider extends ContentProvider {
                 List<String> kurse = uri.getQueryParameters(VplanContract.PARAM_KEY_KURS);
                 String komprDopplStd = uri.getQueryParameter(VplanContract.PARAM_KEY_KOMP_DOPPELSTD);
                 StringBuilder sbSelection = new StringBuilder();
+                int numSelectionArgs = 0;
+                if (selectionArgs != null) {
+                    numSelectionArgs = selectionArgs.length;
+                }
+                if (selection != null) {
+                    sbSelection.append("(")
+                            .append(selection)
+                            .append(") AND ");
+                }
                 sbSelection.append(VplanContract.Klassen.TABLE_NAME)
                         .append(".")
                         .append(VplanContract.Klassen.COL_KLASSE)
@@ -166,6 +178,7 @@ public class VplanProvider extends ContentProvider {
                             .append(" NOT IN (\"2\",\"4\",\"6\",\"8\",\"10\")");
                 }
                 if (klasseStr == null) {
+                    // the simple case
                     c = dbHelper.getReadableDatabase().query(
                             VplanContract.Plan.TABLE_NAME,
                             projection,
@@ -176,16 +189,25 @@ public class VplanProvider extends ContentProvider {
                             sortOrder
                     );
                 } else if (kurse == null || kurse.size() == 0) {
+                    // we have a class but no kurse
+                    String[] klSelArgs = new String[numSelectionArgs + 1];
+                    for (int i = 0; i < numSelectionArgs; i++) {
+                        klSelArgs[i] = selectionArgs[i];
+                    }
+                    klSelArgs[numSelectionArgs] = klasseStr;
                     c = qbPlanFuerKlasse.query(
                             dbHelper.getReadableDatabase(),
                             projection,
                             sbSelection.toString(),
-                            new String[]{klasseStr},
+                            klSelArgs,
                             null,
                             null,
                             sortOrder
                     );
                 } else {
+                    if (selection != null || selectionArgs != null) {
+                        throw new IllegalArgumentException("No selection arguments supported for URI="+uri);
+                    }
                     String[] selectionArgsArray = new String[kurse.size()+1];
                     selectionArgsArray[0] = klasseStr;
                     sbSelection
@@ -231,6 +253,17 @@ public class VplanProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
+            case KLASSEN_AKTUALISIERT:
+                c = dbHelper.getReadableDatabase().query(
+                        VplanContract.KlassenAktualisiert.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
             default:   throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
         c.setNotificationUri(getContext().getContentResolver(),uri);
@@ -247,6 +280,7 @@ public class VplanProvider extends ContentProvider {
             case KURSE: return VplanContract.Kurse.CONTENT_TYPE;
             case PLAN: return VplanContract.Plan.CONTENT_TYPE;
             case ZUSATZINFO: return VplanContract.Zusatzinfo.CONTENT_TYPE;
+            case KLASSEN_AKTUALISIERT: return VplanContract.KlassenAktualisiert.CONTENT_TYPE;
             default: throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
     }
@@ -286,6 +320,11 @@ public class VplanProvider extends ContentProvider {
                 u = ContentUris.withAppendedId(VplanContract.Zusatzinfo.CONTENT_URI,id);
                 break;
             }
+            case KLASSEN_AKTUALISIERT: {
+                long id = db.insertOrThrow(VplanContract.KlassenAktualisiert.TABLE_NAME,null,values);
+                u = ContentUris.withAppendedId(VplanContract.KlassenAktualisiert.CONTENT_URI,id);
+                break;
+            }
             default: throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
         getContext().getContentResolver().notifyChange(u, null);
@@ -319,6 +358,10 @@ public class VplanProvider extends ContentProvider {
             }
             case ZUSATZINFO: {
                 ret = db.delete(VplanContract.Zusatzinfo.TABLE_NAME,selection,selectionArgs);
+                break;
+            }
+            case KLASSEN_AKTUALISIERT: {
+                ret = db.delete(VplanContract.KlassenAktualisiert.TABLE_NAME,selection,selectionArgs);
                 break;
             }
             default: throw new UnsupportedOperationException("Unknown Uri: " + uri);
