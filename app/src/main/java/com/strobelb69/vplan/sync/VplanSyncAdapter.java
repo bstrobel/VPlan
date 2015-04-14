@@ -38,7 +38,8 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
         super(context, autoInitialize);
         vplanParser = new VplanParser(context);
         urlStr = context.getString(R.string.vplanUrl);
-        enableHttpResponseCache();
+        // we can't use it because the webserver does not work correctly. Not our fault
+        //enableHttpResponseCache();
     }
 
     @Override
@@ -84,9 +85,11 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
     // http://developer.android.com/reference/android/net/http/HttpResponseCache.html
     private void enableHttpResponseCache() {
         try {
-            long httpCacheSize = 1 * 1024 * 1024; // 1 MiB
-            File httpCacheDir = new File(getContext().getCacheDir(), "http");
-            HttpResponseCache.install(httpCacheDir,httpCacheSize);
+            if (HttpResponseCache.getInstalled() != null) {
+                long httpCacheSize = 1 * 1024 * 1024; // 1 MiB
+                File httpCacheDir = new File(getContext().getCacheDir(), "http");
+                HttpResponseCache.install(httpCacheDir, httpCacheSize);
+            }
         } catch (IOException ex) {
             Log.i(LT, "Setting up HTTP cache failed!\n" + ex);
         }
