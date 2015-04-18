@@ -12,7 +12,7 @@
     <string name="prefKeyKurs" translatable="false">kurs</string>
     <string name="prefTitleDoppelstunde">Doppelstunden oder Blöcke</string>
     <string name="prefSummaryDoppelstundeOn">Doppelstunden werden zu Blöcken zusammengefasst.</string>
-    <string name="prefSummaryDoppelstundeOff">Alles Stunden werden separat angezeigt.</string>
+    <string name="prefSummaryDoppelstundeOff">Alle Stunden werden separat angezeigt.</string>
     <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
     <string name="prefTitleSendNotification">Benachrichtigung anzeigen</string>
     <string name="prefSummarySendNotificationOn">Bei aktualisiertem Stundenplan wird eine Benachrichtigung anzeigt.</string>
