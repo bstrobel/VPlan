@@ -16,6 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Fragment for generic settings of the app
+ *
  * Created by bstrobel on 16.03.2015.
  */
 public class SettingsMainFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -48,25 +50,53 @@ public class SettingsMainFragment extends PreferenceFragment implements SharedPr
         sPref.registerOnSharedPreferenceChangeListener(this);
 
         onSharedPreferenceChanged(sPref, prefKlasse.getKey());
+        onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoppelstunde));
+        onSharedPreferenceChanged(sPref, getString(R.string.prefKeySendNotification));
+        onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoSyncAutomatically));
     }
 
     /*
         Set the Summaries of the preferences according to the new Settings.
      */
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    public void onSharedPreferenceChanged(SharedPreferences p, String k) {
         if (isAdded()) {
             String keyKlasse = getString(R.string.prefKeyKlasse);
             ListPreference klassePref = (ListPreference) findPreference(keyKlasse);
             String klasse = klassePref.getValue();
-            if (key.equals(keyKlasse)) {
+            if (k.equals(keyKlasse)) {
                 klassePref.setSummary(klassePref.getValue());
                 setKursListSummary(klasse);
-            } else if (key.contains(klasse + KLASSE_KURS_SEP)) {
+            } else if (k.contains(klasse + KLASSE_KURS_SEP)) {
                 setKursListSummary(klasse);
+            } else if (k.equals(getString(R.string.prefKeyDoppelstunde))) {
+                setBooleanPrefSummary(
+                        p, k,
+                        getString(R.string.prefSummaryDoppelstundeOn),
+                        getString(R.string.prefSummaryDoppelstundeOff));
+            } else if (k.equals(getString(R.string.prefKeySendNotification))) {
+                setBooleanPrefSummary(
+                        p, k,
+                        getString(R.string.prefSummarySendNotificationOn),
+                        getString(R.string.prefSummarySendNotificationOff));
+            } else if (k.equals(getString(R.string.prefKeyDoSyncAutomatically))) {
+                setBooleanPrefSummary(
+                        p, k,
+                        getString(R.string.prefSummaryDoSyncAutomaticallyOn),
+                        getString(R.string.prefSummaryDoSyncAutomaticallyOff));
             }
         }
 
+    }
+
+    private void setBooleanPrefSummary(
+            SharedPreferences sp, String k, String summaryOn, String summaryOff) {
+        Preference p = findPreference(k);
+        if (sp.getBoolean(k,true)) {
+            p.setSummary(summaryOn);
+        } else {
+            p.setSummary(summaryOff);
+        }
     }
 
     private void setKursListSummary(String klasse) {

@@ -33,6 +33,19 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/textview_sync_disabled_warning"
+        android:paddingLeft="@dimen/zusatzinfo_margin"
+        android:paddingRight="@dimen/zusatzinfo_margin"
+        android:paddingTop="@dimen/zusatzinfo_margin"
+        android:paddingBottom="@dimen/zusatzinfo_margin"
+        android:elevation="@dimen/zusatzinfo_elevation"
+        android:visibility="gone"
+        android:text="@string/syncDisabledWarning"
+        android:textColor="@color/sync_disable_warning_font_color"
+        android:background="@color/sync_disable_warning_color"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/textview_timestamp_of_last_update"
         android:text="timestamp of last update"
         android:textColor="@color/time_stamp_font_color"

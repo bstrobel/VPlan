@@ -10,24 +10,29 @@
     <string name="prefKeyKlasse" translatable="false">klasse</string>
     <string name="prefDefKlasse" translatable="false">5a</string>
     <string name="prefKeyKurs" translatable="false">kurs</string>
-    <string name="prefTitleDoppelstunde">Doppelstunden</string>
-    <string name="prefSummaryDoppelstunde">Sollen Doppelstunden zu Blöcken zusammengefasst werden?</string>
+    <string name="prefTitleDoppelstunde">Doppelstunden oder Blöcke</string>
+    <string name="prefSummaryDoppelstundeOn">Doppelstunden werden zu Blöcken zusammengefasst.</string>
+    <string name="prefSummaryDoppelstundeOff">Alles Stunden werden separat angezeigt.</string>
     <string name="prefKeyDoppelstunde" translatable="false">komprDoppelStd</string>
-    <string name="prefTitleSendNotification">Benachrichtigung</string>
-    <string name="prefSummarySendNotification">Soll am oberen Bildschirmrand eine Benachrichtigung angezeigt werden, wenn sich der Vertretungsplan geändert hat?</string>
+    <string name="prefTitleSendNotification">Benachrichtigung anzeigen</string>
+    <string name="prefSummarySendNotificationOn">Bei aktualisiertem Stundenplan wird eine Benachrichtigung anzeigt.</string>
+    <string name="prefSummarySendNotificationOff">Bei aktualisiertem Stundenplan wird keine Benachrichtigung anzeigt.</string>
     <string name="prefKeySendNotification" translatable="false">sendNotification</string>
-    <string name="prefTitleDoSyncAutomatically">Im Hintegrund synchronisieren</string>
+    <string name="prefTitleDoSyncAutomatically">Automatisch synchronisieren</string>
+    <string name="prefSummaryDoSyncAutomaticallyOn">Automatisches Aktualisieren des Stundenplans im Hintergrund ist aktiviert.</string>
+    <string name="prefSummaryDoSyncAutomaticallyOff">Automatisches Aktualisieren des Stundenplans im Hintergrund ist deaktiviert.</string>
     <string name="prefKeyDoSyncAutomatically" translatable="false">doSyncAutomatically</string>
 
     <string name="lblBlock">. Block</string>
     <string name="lblStunde">. Stunde</string>
     <string name="notificationTitle">Vetretungsplan</string>
     <string name="notificationText">Vetretungsplan aktualisiert!</string>
+    <string name="syncDisabledWarning">Achtung! Automatische Synchronisierung ist deaktiviert!</string>
 
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
     <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
 
     <string name="lblTimestamp">Stand vom</string>
-    <string name="lblLastSync">, letzter Check auf Server</string>
+    <string name="lblLastSync">, letzter Download vom Server</string>
     <string name="strNoZusinfo">Keine weitern Information. Bitte gegebenenfalls Aushänge beachten!</string>
 </resources>

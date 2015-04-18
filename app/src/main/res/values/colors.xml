@@ -4,4 +4,6 @@
     <color name="bernd_blue_dark">#ff0963ff</color>
     <color name="time_stamp_font_color">#ff848484</color>
     <color name="zusinfo_font_color">#ffffffff</color>
+    <color name="sync_disable_warning_color">#ffff0000</color>
+    <color name="sync_disable_warning_font_color">#ffffffff</color>
 </resources>

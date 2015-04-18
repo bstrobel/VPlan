@@ -1,15 +1,20 @@
 package com.strobelb69.vplan;
 
 import android.app.FragmentTransaction;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 
 /**
+ * Activity for generic settings of the app
+ *
  * Created by bstrobel on 16.03.2015.
  */
 public class SettingsActivity extends ActionBarActivity {
@@ -50,6 +55,15 @@ public class SettingsActivity extends ActionBarActivity {
                 break;
             default:
             case MAIN:
+                // check if someone switched off syncing in the settings app of android
+                boolean isSyncEnabled = ContentResolver.getSyncAutomatically(
+                        MainActivity.getSyncAccountObj(this),
+                        getString(R.string.vplan_provider_authority));
+                Log.d(LT, "isSyncEnabled=" + isSyncEnabled);
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                prefs.edit()
+                        .putBoolean(getString(R.string.prefKeyDoSyncAutomatically), isSyncEnabled)
+                        .apply();
                 ft.replace(R.id.vplan_settings_avtivity, new SettingsMainFragment());
                 break;
         }

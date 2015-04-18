@@ -69,14 +69,6 @@ public class MainActivity extends ActionBarActivity {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.activity_main_container, new VPlanFragment(), VPFMT_TAG)
                     .commit();
-            // check if someone switched off syncing in the settings app of android
-            boolean isSyncEnabled = ContentResolver.getSyncAutomatically(
-                    getSyncAccount(),
-                    authority);
-            Log.d(LT, "isSyncEnabled=" + isSyncEnabled);
-            prefs.edit()
-                    .putBoolean(syncAutoKey, isSyncEnabled)
-                    .apply();
             getSupportLoaderManager().initLoader(TITLE_LOADER, null, new ActionBarLoader());
         }
 
@@ -143,7 +135,6 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            Log.d(LT, "onCreateLoader called!");
             return new CursorLoader(
                     MainActivity.this,
                     VplanContract.Kopf.CONTENT_URI,
@@ -153,7 +144,6 @@ public class MainActivity extends ActionBarActivity {
         @SuppressLint("SimpleDateFormat")
         @Override
         public void onLoadFinished(Loader<Cursor> l, Cursor c) {
-            Log.d(LT, "onLoadFinished called!");
             ActionBar ab = getSupportActionBar();
             String d = "";
             if (c != null && c.getCount() > 0) {
@@ -167,7 +157,6 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onLoaderReset(Loader<Cursor> cursorLoader) {
-            Log.d(LT, "onLoaderReset called!");
         }
     }
 
@@ -182,9 +171,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public Account getSyncAccount() {
-        Account acc = new Account(
-                getString(R.string.app_name),
-                getString(R.string.vplan_authenticator_account_type));
+        Account acc = getSyncAccountObj(this);
 
         AccountManager mgr = (AccountManager) getSystemService(Context.ACCOUNT_SERVICE);
         if (mgr.getPassword(acc) == null) {
@@ -197,6 +184,12 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return acc;
+    }
+
+    public static Account getSyncAccountObj(Context c) {
+        return new Account(
+                c.getString(R.string.app_name),
+                c.getString(R.string.vplan_authenticator_account_type));
     }
 
     public void configurePeriodicSync(int syncInterval, int flexTime) {

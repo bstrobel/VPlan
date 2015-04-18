@@ -84,8 +84,8 @@ public class VplanNotificationService extends IntentService {
         Cursor klAktCrs = ctx.getContentResolver().query(
                 VplanContract.KlassenAktualisiert.CONTENT_URI,
                 null,
-                VplanContract.KlassenAktualisiert.COL_KLASSE + " IN (?,?)",
-                new String[]{klasse, VplanParser.ZUSINFO_TAG},
+                VplanContract.KlassenAktualisiert.COL_KLASSE + " IN (?,?,?)",
+                new String[]{klasse, VplanParser.ZUSINFO_TAG, VplanParser.NEUER_TAG_TAG},
                 null);
         boolean returnVal = false;
         if (klAktCrs !=null) {

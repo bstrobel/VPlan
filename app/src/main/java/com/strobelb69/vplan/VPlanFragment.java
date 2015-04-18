@@ -1,5 +1,6 @@
 package com.strobelb69.vplan;
 
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -12,25 +13,23 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.strobelb69.vplan.data.VplanContract;
-import com.strobelb69.vplan.sync.VplanSyncAdapter;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Map;
 
 /**
+ * Main Fragment of MainActivity
+ *
  * Created by Bernd on 15.03.2015.
  */
-public class VPlanFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class VPlanFragment extends Fragment {
 
     private static final String[] PROJECTION_PLAN = new String[] {
             VplanContract.Plan.TABLE_NAME+"."+VplanContract.Plan._ID, // this needs the the Loader
@@ -83,23 +82,23 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
+    public void onResume() {
+        super.onResume();
+        setSyncDisableWarning(getView());
+        setUriKlasse(sPref);
         getLoaderManager().restartLoader(MainActivity.TIMESTAMP_LOADER, null, timeStampLoader);
         getLoaderManager().restartLoader(MainActivity.ZUSATZINFO_LOADER, null, zusinfoLoader);
-        sPref.registerOnSharedPreferenceChangeListener(this);
-        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        // Check for isAdded() is done to avoid "java.lang.IllegalStateException: Fragment VPlanFragment{19a95b71} not attached to Activity"
-        if (isAdded() &&
-                (key.equals(keyKlasse) ||
-                        key.equals(keyKomprDoppelStd) ||
-                        key.contains(SettingsMainFragment.KLASSE_KURS_SEP))) {
-            setUriKlasse(prefs);
-            getLoaderManager().restartLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
+    private void setSyncDisableWarning(View rv) {
+        TextView tv = (TextView) rv.findViewById(R.id.textview_sync_disabled_warning);
+        if (ContentResolver.getSyncAutomatically(
+                MainActivity.getSyncAccountObj(getActivity()),
+                getString(R.string.vplan_provider_authority))) {
+            tv.setVisibility(View.GONE);
+        } else {
+            tv.setVisibility(View.VISIBLE);
         }
     }
 
@@ -126,7 +125,7 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
     }
 
     private class TimeStampLoader implements LoaderManager.LoaderCallbacks<Cursor> {
-        String LT = getClass().getSimpleName();
+        String LT = VPlanFragment.this.LT + "." + getClass().getSimpleName();
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             Uri uriKopf = VplanContract.BASE_CONTENT_URI.buildUpon().appendPath(VplanContract.PATH_KOPF).build();
@@ -136,7 +135,6 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
-            Log.d(LT,"onLoadFinished:");
             if (c != null && c.moveToFirst()) {
                 TextView tvTimeStamp = (TextView) getActivity().findViewById(R.id.textview_timestamp_of_last_update);
                 tvTimeStamp.setText(lblTimeStamp + " " + df.format(new Date(c.getLong(0))) + lblLastSync + " " + df.format(new Date(c.getLong(1))));
@@ -145,12 +143,11 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
 
         @Override
         public void onLoaderReset(Loader<Cursor> loader) {
-            Log.d(LT,"onLoadReset:");
         }
     }
 
     private class ZusatzinfoLoader implements LoaderManager.LoaderCallbacks<Cursor> {
-        String LT = getClass().getSimpleName();
+        String LT = VPlanFragment.this.LT + "." + getClass().getSimpleName();
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -161,7 +158,6 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
-            Log.d(LT,"onLoadFinished:");
             TextView tvZusInfo = (TextView) getActivity().findViewById(R.id.textview_zusatzinfo);
             StringBuilder sb = new StringBuilder();
             if (c != null && c.getCount() > 0) {
@@ -179,12 +175,11 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
 
         @Override
         public void onLoaderReset(Loader<Cursor> loader) {
-            Log.d(LT,"onLoadReset:");
         }
     }
 
     private class PlanLoader implements LoaderManager.LoaderCallbacks<Cursor> {
-        String LT = getClass().getSimpleName();
+        String LT = VPlanFragment.this.LT + "." + getClass().getSimpleName();
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -194,13 +189,11 @@ public class VPlanFragment extends Fragment implements SharedPreferences.OnShare
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            Log.d(LT,"onLoadFinished, Swapping Cursor");
             vplanAdapter.swapCursor(data);
         }
 
         @Override
         public void onLoaderReset(Loader<Cursor> loader) {
-            Log.d(LT,"onLoaderReset: Resetting Cursor to null");
             vplanAdapter.swapCursor(null);
         }
     }

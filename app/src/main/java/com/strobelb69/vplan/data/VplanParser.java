@@ -37,6 +37,7 @@ public class VplanParser {
     private final ContentResolver crslv;
     private final String LT = getClass().getSimpleName();
     public static final String ZUSINFO_TAG = "_ZUSATZINFO_";
+    public static final String NEUER_TAG_TAG = "_NEUER_TAG_";
 
     public VplanParser(Context ctx) {
         super();
@@ -50,14 +51,10 @@ public class VplanParser {
             Document planXml = new SAXBuilder().build(is);
             Element re = planXml.getRootElement();
             Element kopf = re.getChild("Kopf");
-            boolean isNeuerTag = getIsNeuerTag(kopf);
+            boolean isNeuerTag = getIsNeuerTag(kopf, ops);
             boolean isNeueDaten = getIsNeuerZeitStempel(kopf);
             boolean isNewData = isNeuerTag || isNeueDaten;
             if (isNewData) {
-                ContentProviderOperation.Builder op =
-                        ContentProviderOperation.newDelete(
-                                VplanContract.KlassenAktualisiert.CONTENT_URI);
-                ops.add(op.build());
                 Log.i(LT, "New data received. Data will be parsed and database will be udapted!");
                 getKopf(ops, kopf, isNeuerTag);
                 getFreieTage(ops, re.getChild("FreieTage"));
@@ -83,7 +80,7 @@ public class VplanParser {
         return false;
     }
 
-    private void getKopf(ArrayList<ContentProviderOperation> ops, Element kopf, boolean isNeuerTag)
+    private void getKopf(List<ContentProviderOperation> ops, Element kopf, boolean isNeuerTag)
             throws ParseException, RemoteException, OperationApplicationException {
         ops.add(ContentProviderOperation.newDelete(VplanContract.Kopf.CONTENT_URI).build());
         ContentProviderOperation.Builder cpob = ContentProviderOperation.newInsert(VplanContract.Kopf.CONTENT_URI);
@@ -95,11 +92,20 @@ public class VplanParser {
         ops.add(cpob.withValues(cv).build());
     }
 
-    private boolean getIsNeuerTag(Element kopf) throws ParseException {
+    private boolean getIsNeuerTag(Element kopf, List<ContentProviderOperation> ops) throws ParseException {
         long dateInDb = getKopfColumnAsLong(VplanContract.Kopf.COL_FOR_DATE);
         long dateInXml = datumPlanParser(kopf.getChildText("DatumPlan"));
         Log.d(LT,"dateInXml="+dateInXml+", dateInDb="+dateInDb);
-        return dateInDb != dateInXml;
+        boolean isNeuerTag = dateInDb != dateInXml;
+        if (isNeuerTag) {
+            ops.add(ContentProviderOperation.newDelete(
+                    VplanContract.KlassenAktualisiert.CONTENT_URI).build());
+            ops.add(ContentProviderOperation
+                    .newInsert(VplanContract.KlassenAktualisiert.CONTENT_URI)
+                    .withValue(VplanContract.KlassenAktualisiert.COL_KLASSE, NEUER_TAG_TAG)
+                    .build());
+        }
+        return isNeuerTag;
     }
 
     private boolean getIsNeuerZeitStempel(Element kopf) throws ParseException {
@@ -129,7 +135,7 @@ public class VplanParser {
         return new SimpleDateFormat("EEE, dd. MMM yyyy", Locale.GERMANY).parse(z).getTime();
     }
 
-    private void getFreieTage(ArrayList<ContentProviderOperation> ops, Element t) throws ParseException {
+    private void getFreieTage(List<ContentProviderOperation> ops, Element t) throws ParseException {
         ops.add(ContentProviderOperation.newDelete(VplanContract.FreieTage.CONTENT_URI).build());
         for (Element d: t.getChildren("ft")) {
             ContentProviderOperation.Builder cpob = ContentProviderOperation.newInsert(VplanContract.FreieTage.CONTENT_URI);
@@ -144,7 +150,7 @@ public class VplanParser {
         return new SimpleDateFormat("yyMMdd",Locale.US).parse(z).getTime();
     }
 
-    private void getKlassen(ArrayList<ContentProviderOperation> ops, Element k, boolean isNeuerTag) {
+    private void getKlassen(List<ContentProviderOperation> ops, Element k, boolean isNeuerTag) {
         ops.add(ContentProviderOperation.newDelete(VplanContract.Plan.CONTENT_URI).build());
         ops.add(ContentProviderOperation.newDelete(VplanContract.Kurse.CONTENT_URI).build());
         ops.add(ContentProviderOperation.newDelete(VplanContract.Klassen.CONTENT_URI).build());
