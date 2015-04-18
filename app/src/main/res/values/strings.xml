@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">VPlan</string>
     <string name="action_settings">Einstellungen</string>
-    <string name="action_refresh">Aktualisieren</string>
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
 
     <string name="prefTitleKlasse">Klasse</string>
@@ -18,16 +17,16 @@
     <string name="prefSummarySendNotificationOn">Bei aktualisiertem Stundenplan wird eine Benachrichtigung anzeigt.</string>
     <string name="prefSummarySendNotificationOff">Bei aktualisiertem Stundenplan wird keine Benachrichtigung anzeigt.</string>
     <string name="prefKeySendNotification" translatable="false">sendNotification</string>
-    <string name="prefTitleDoSyncAutomatically">Automatisch synchronisieren</string>
-    <string name="prefSummaryDoSyncAutomaticallyOn">Automatisches Aktualisieren des Stundenplans im Hintergrund ist aktiviert.</string>
-    <string name="prefSummaryDoSyncAutomaticallyOff">Automatisches Aktualisieren des Stundenplans im Hintergrund ist deaktiviert.</string>
+    <string name="prefTitleDoSyncAutomatically">Aktualisierung</string>
+    <string name="prefSummaryDoSyncAutomaticallyOn">Automatische Aktualisierung des Stundenplans ist aktiviert.</string>
+    <string name="prefSummaryDoSyncAutomaticallyOff">Automatische Aktualisierung des Stundenplans deaktiviert.</string>
     <string name="prefKeyDoSyncAutomatically" translatable="false">doSyncAutomatically</string>
 
     <string name="lblBlock">. Block</string>
     <string name="lblStunde">. Stunde</string>
     <string name="notificationTitle">Vetretungsplan</string>
     <string name="notificationText">Vetretungsplan aktualisiert!</string>
-    <string name="syncDisabledWarning">Achtung! Automatische Synchronisierung ist deaktiviert!</string>
+    <string name="syncDisabledWarning">Achtung! Aktualisierung deaktiviert. Angezeigte Daten können veraltet sein!</string>
 
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>
     <string name="vplan_authenticator_account_type" translatable="false">kantgym-leipzig.de</string>
