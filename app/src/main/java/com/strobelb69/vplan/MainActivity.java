@@ -26,6 +26,7 @@ import com.strobelb69.vplan.data.VplanContract;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -57,9 +58,7 @@ public class MainActivity extends ActionBarActivity {
         prefListener = new SharedPrefListener();
 
         setContentView(R.layout.activity_main);
-        Log.d(LT, "onCreate() called");
         if (savedInstanceState == null) {
-            Log.d(LT, "onCreate(null) called");
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
             authority = getString(R.string.vplan_provider_authority);
             klasseKey = getString(R.string.prefKeyKlasse);
@@ -71,8 +70,13 @@ public class MainActivity extends ActionBarActivity {
                     .commit();
             getSupportLoaderManager().initLoader(TITLE_LOADER, null, new ActionBarLoader());
         }
+    }
 
-        if (prefs.getBoolean(syncAutoKey, true)) {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.getBoolean(syncAutoKey,true)) {
             syncImmediately();
         }
     }

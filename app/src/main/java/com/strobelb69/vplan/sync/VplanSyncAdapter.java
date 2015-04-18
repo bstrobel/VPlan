@@ -1,15 +1,12 @@
 package com.strobelb69.vplan.sync;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.net.http.HttpResponseCache;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -22,6 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * SyncAdapter that synchronizes the ContentProvider with data from the Internet.
@@ -49,32 +49,38 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
             String authority,
             ContentProviderClient provider,
             SyncResult syncResult) {
-        InputStream is = null;
-        try {
-            Log.i(LT, "Vplan sync started");
-            URL url = new URL(urlStr);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
-            conn.connect();
-            is = conn.getInputStream();
-            if (vplanParser.retrievePlan(is)) {
-                Log.d(LT,"Something happened, showing notification!");
-                VplanNotificationService.showNotification(getContext());
-            }
-            Log.i(LT, "Vplan sync finished");
-        } catch (IOException ex) {
-            Log.e(LT,"Error while getting URL " + urlStr
-                    + "\n" + ex);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException ex) {
-                    Log.e(LT, "Error while getting URL " + urlStr
-                            + "\n" + ex);
+        Log.d(LT, "extras: " + extras);
+        boolean isForced = extras != null
+                && extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
+
+        if (isForced || isSyncTime()) {
+            InputStream is = null;
+            try {
+                Log.i(LT, "Vplan sync started");
+                URL url = new URL(urlStr);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(10000 /* milliseconds */);
+                conn.setConnectTimeout(15000 /* milliseconds */);
+                conn.setRequestMethod("GET");
+                conn.setDoInput(true);
+                conn.connect();
+                is = conn.getInputStream();
+                if (vplanParser.retrievePlan(is)) {
+                    Log.d(LT, "Something happened, showing notification!");
+                    VplanNotificationService.showNotification(getContext());
+                }
+                Log.i(LT, "Vplan sync finished");
+            } catch (IOException ex) {
+                Log.e(LT,"Error while getting URL " + urlStr
+                        + "\n" + ex);
+            } finally {
+                if (is != null) {
+                    try {
+                        is.close();
+                    } catch (IOException ex) {
+                        Log.e(LT, "Error while getting URL " + urlStr
+                                + "\n" + ex);
+                    }
                 }
             }
         }
@@ -93,5 +99,31 @@ public class VplanSyncAdapter extends AbstractThreadedSyncAdapter {
         } catch (IOException ex) {
             Log.i(LT, "Setting up HTTP cache failed!\n" + ex);
         }
+    }
+
+    private boolean isSyncTime() {
+        Date now = new Date();
+        TimeZone tzKantGym = TimeZone.getTimeZone("Europe/Berlin");
+        Log.d(LT, "Current time in millis: " + now.getTime());
+        boolean val = now.getTime() > getLocalizedTimeMillis(tzKantGym, now, 6, 0) &&
+                now.getTime() < getLocalizedTimeMillis(tzKantGym, now, 21, 0);
+        if (!val) {
+            Log.d(LT, "Skipping sync because we're outside of sync hours!");
+        }
+        return val;
+    }
+
+    private long getLocalizedTimeMillis(TimeZone tz, Date t, int h, int m) {
+        Calendar c = Calendar.getInstance(tz);
+        c.setTime(t);
+        if (h < 12) {
+            c.set(Calendar.AM_PM, Calendar.AM);
+        }
+        c.set(Calendar.HOUR,h);
+        c.set(Calendar.MINUTE,m);
+        c.set(Calendar.SECOND,0);
+        c.set(Calendar.MILLISECOND,0);
+        Log.d(LT, "Calendars time in millis: " + c.getTimeInMillis());
+        return c.getTimeInMillis();
     }
 }
