@@ -34,5 +34,5 @@
 
     <string name="lblTimestamp">Stand vom</string>
     <string name="lblLastSync">, letzter Download vom Server</string>
-    <string name="strNoZusinfo">Keine weitern Information. Bitte gegebenenfalls Aushänge beachten!</string>
+    <string name="strNoZusinfo">Keine weiteren Informationen. Bitte gegebenenfalls Aushänge beachten!</string>
 </resources>
