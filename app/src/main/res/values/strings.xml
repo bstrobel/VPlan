@@ -24,8 +24,10 @@
 
     <string name="lblBlock">. Block</string>
     <string name="lblStunde">. Stunde</string>
-    <string name="notificationTitle">Vetretungsplan</string>
-    <string name="notificationText">Vetretungsplan aktualisiert!</string>
+    <string name="notificationTitle">Vertretungsplan</string>
+    <string name="notificationTextKlasse">Vertretungsplan für Klasse %s aktualisiert!</string>
+    <string name="notificationTextZusInfo">Die zusätzlichen Informationen wurden aktualisiert!</string>
+    <string name="notificationTextNeuerTag">Vertretungsplan für %s wurde eingestellt!</string>
     <string name="syncDisabledWarning">Achtung! Aktualisierung deaktiviert. Angezeigte Daten können veraltet sein!</string>
 
     <string name="vplan_provider_authority" translatable="false">com.strobelb69.vplan</string>

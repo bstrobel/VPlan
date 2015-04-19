@@ -10,9 +10,13 @@ import android.database.Cursor;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.text.format.DateFormat;
 
 import com.strobelb69.vplan.data.VplanContract;
 import com.strobelb69.vplan.data.VplanParser;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class VplanNotificationService extends IntentService {
     private static final int NOTIFICATION_ID = 0;
@@ -58,39 +62,81 @@ public class VplanNotificationService extends IntentService {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         String notifKey = getString(R.string.prefKeySendNotification);
 
-        if (prefs.getBoolean(notifKey,true) && isNewDataForKlasseOrZusInfo(ctx, prefs)) {
-            Intent mainIntent = new Intent(ctx, MainActivity.class);
+        if (prefs.getBoolean(notifKey,true)) {
 
-            TaskStackBuilder sb = TaskStackBuilder.create(ctx);
-            sb.addParentStack(MainActivity.class);
-            sb.addNextIntent(mainIntent);
+            boolean isNeuerTag = isNewDataForVal(ctx, VplanParser.NEUER_TAG_TAG);
+            boolean isZusInfoAkt = false;
+            boolean isKlassePlanAkt = false;
+            String klasse = prefs.getString(getString(R.string.prefKeyKlasse),"XXX");
 
-            PendingIntent pi = sb.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+            if (!isNeuerTag) {
+                isZusInfoAkt = isNewDataForVal(ctx, VplanParser.ZUSINFO_TAG);
+                isKlassePlanAkt = isNewDataForVal(ctx, klasse);
+            }
+            if (isNeuerTag || isZusInfoAkt || isKlassePlanAkt) {
+                String text;
+                if (isNeuerTag) {
+                    text = String.format(getString(R.string.notificationTextNeuerTag),
+                            getDateAkt(ctx));
+                } else {
+                    if (isKlassePlanAkt) {
+                        text = String.format(getString(R.string.notificationTextKlasse), klasse);
+                    } else {
+                        text = getString(R.string.notificationTextZusInfo);
+                    }
+                }
 
-            NotificationCompat.Builder nb = new NotificationCompat.Builder(ctx)
-                    .setSmallIcon(R.drawable.bs_icon_notification)
-                    .setContentTitle(getString(R.string.notificationTitle))
-                    .setContentText(getString(R.string.notificationText))
-                    .setContentIntent(pi);
+                Intent mainIntent = new Intent(ctx, MainActivity.class);
 
-            NotificationManager nmgr =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            nmgr.notify(NOTIFICATION_ID, nb.build());
+                TaskStackBuilder sb = TaskStackBuilder.create(ctx);
+                sb.addParentStack(MainActivity.class);
+                sb.addNextIntent(mainIntent);
+
+                PendingIntent pi = sb.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                NotificationCompat.Builder nb = new NotificationCompat.Builder(ctx)
+                        .setSmallIcon(R.drawable.bs_icon_notification)
+                        .setContentTitle(getString(R.string.notificationTitle))
+                        .setContentText(text)
+                        .setContentIntent(pi);
+
+                NotificationManager nmgr =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                nmgr.notify(NOTIFICATION_ID, nb.build());
+            }
         }
     }
 
-    private boolean isNewDataForKlasseOrZusInfo(Context ctx, SharedPreferences prefs) {
-        String klasse = prefs.getString(getString(R.string.prefKeyKlasse),"XXX");
-        Cursor klAktCrs = ctx.getContentResolver().query(
+    private boolean isNewDataForVal(Context ctx, String val) {
+        Cursor c = ctx.getContentResolver().query(
                 VplanContract.KlassenAktualisiert.CONTENT_URI,
                 null,
-                VplanContract.KlassenAktualisiert.COL_KLASSE + " IN (?,?,?)",
-                new String[]{klasse, VplanParser.ZUSINFO_TAG, VplanParser.NEUER_TAG_TAG},
+                VplanContract.KlassenAktualisiert.COL_KLASSE + " = ?",
+                new String[]{val},
                 null);
         boolean returnVal = false;
-        if (klAktCrs !=null) {
-            returnVal = klAktCrs.getCount() > 0;
-            klAktCrs.close();
+        if (c !=null) {
+            returnVal = c.getCount() > 0;
+            c.close();
+        }
+        return returnVal;
+    }
+
+    private String getDateAkt(Context ctx) {
+        Cursor c = ctx.getContentResolver().query(
+                VplanContract.Kopf.CONTENT_URI,
+                new String[]{VplanContract.Kopf.COL_FOR_DATE},
+                null,
+                null,
+                null);
+        String returnVal = "";
+        if (c !=null) {
+            if (c.moveToFirst()) {
+                Date date = new Date(c.getLong(0));
+                returnVal = new SimpleDateFormat("EEE ").format(date) +
+                        DateFormat.getDateFormat(ctx).format(date);
+            }
+            c.close();
         }
         return returnVal;
     }
