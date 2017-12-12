@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 /**
@@ -17,7 +18,7 @@ import android.util.Log;
  *
  * Created by bstrobel on 16.03.2015.
  */
-public class SettingsActivity extends ActionBarActivity {
+public class SettingsActivity extends AppCompatActivity {
 
     private static final String CONTENT_AUTHORITY = "com.strobelb69.vplan";
     public static final Uri BASE_PREF_URI = Uri.parse("preferences://" + CONTENT_AUTHORITY);

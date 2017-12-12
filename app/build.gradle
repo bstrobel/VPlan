@@ -11,7 +11,6 @@ android {
         }
     }
     compileSdkVersion 22
-    buildToolsVersion "21.1.2"
     defaultConfig {
         applicationId "com.strobelb69.vplan"
         minSdkVersion 15

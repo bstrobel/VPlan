@@ -17,6 +17,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
@@ -29,7 +30,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     public final String LT=getClass().getSimpleName();
     public static final String VPFMT_TAG = "VPFMT_TAG";
     public static final int TITLE_LOADER = 0;

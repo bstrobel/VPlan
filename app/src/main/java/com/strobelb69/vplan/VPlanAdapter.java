@@ -2,6 +2,7 @@ package com.strobelb69.vplan;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
@@ -73,17 +74,17 @@ public class VPlanAdapter extends CursorAdapter implements SharedPreferences.OnS
         if (c.getInt(COL_FACH_NEU) == 1) {
             vh.tvFach.setTextColor(Color.RED);
         } else {
-            vh.tvFach.setTextColor(Color.BLACK);
+            vh.tvFach.setTextColor(vh.tvStunde.getTextColors());
         }
         if (c.getInt(COL_LEHRER_NEU) == 1) {
             vh.tvLehrer.setTextColor(Color.RED);
         } else {
-            vh.tvLehrer.setTextColor(Color.BLACK);
+            vh.tvLehrer.setTextColor(vh.tvStunde.getTextColors());
         }
         if (c.getInt(COL_RAUM_NEU) == 1) {
             vh.tvRaum.setTextColor(Color.RED);
         } else {
-            vh.tvRaum.setTextColor(Color.BLACK);
+            vh.tvRaum.setTextColor(vh.tvStunde.getTextColors());
         }
     }
 
