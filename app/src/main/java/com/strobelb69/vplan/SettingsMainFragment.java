@@ -60,15 +60,17 @@ public class SettingsMainFragment extends PreferenceFragment implements SharedPr
         sPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         sPref.registerOnSharedPreferenceChangeListener(this);
 
-        onSharedPreferenceChanged(sPref, prefKlasse.getKey());
-        onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoppelstunde));
-        onSharedPreferenceChanged(sPref, getString(R.string.prefKeySendNotification));
-        onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoSyncAutomatically));
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return super.onCreateView(inflater, container, savedInstanceState);
+        View v = super.onCreateView(inflater, container, savedInstanceState);
+        ListPreference prefKlasse = (ListPreference) findPreference(getString(R.string.prefKeyKlasse));
+        onSharedPreferenceChanged(sPref, prefKlasse.getKey());
+        onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoppelstunde));
+        onSharedPreferenceChanged(sPref, getString(R.string.prefKeySendNotification));
+        onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoSyncAutomatically));
+        return v;
     }
 
     /*

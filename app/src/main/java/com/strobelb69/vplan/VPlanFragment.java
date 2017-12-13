@@ -68,6 +68,9 @@ public class VPlanFragment extends Fragment {
         planLoader = new PlanLoader();
         timeStampLoader = new TimeStampLoader();
         zusinfoLoader = new ZusatzinfoLoader();
+        getLoaderManager().initLoader(MainActivity.TIMESTAMP_LOADER,null, timeStampLoader);
+        getLoaderManager().initLoader(MainActivity.ZUSATZINFO_LOADER, null, zusinfoLoader);
+        getLoaderManager().initLoader(MainActivity.PLAN_LIST_LOADER, null, planLoader);
         df = DateFormat.getDateTimeInstance();
     }
 

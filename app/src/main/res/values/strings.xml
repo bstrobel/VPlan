@@ -23,6 +23,7 @@
     <string name="prefSummaryDoSyncAutomaticallyOff">Automatische Aktualisierung des Stundenplans deaktiviert.</string>
     <string name="prefKeyDoSyncAutomatically" translatable="false">doSyncAutomatically</string>
 
+    <string name="lbl_actionbar_title_klasse">Klasse</string>
     <string name="lblBlock">. Block</string>
     <string name="lblStunde">. Stunde</string>
     <string name="notificationTitle">Vertretungsplan</string>

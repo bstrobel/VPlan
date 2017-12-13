@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
             ActionBar ab = getSupportActionBar();
             if (ab != null) {
-                ab.setTitle(d + " - " + currKlasse);
+                ab.setTitle(getString(R.string.lbl_actionbar_title_klasse) + " " + currKlasse + " - " + d);
             }
         }
 
