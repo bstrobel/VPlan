@@ -16,8 +16,8 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
@@ -27,7 +27,6 @@ import com.strobelb69.vplan.data.VplanContract;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -59,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
         prefListener = new SharedPrefListener();
 
         setContentView(R.layout.activity_main);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.vplan_toolbar);
+        getSupportLoaderManager().initLoader(TITLE_LOADER, null, new ActionBarLoader());
+        setSupportActionBar(myToolbar);
         if (savedInstanceState == null) {
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
             authority = getString(R.string.vplan_provider_authority);
@@ -69,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.activity_main_container, new VPlanFragment(), VPFMT_TAG)
                     .commit();
-            getSupportLoaderManager().initLoader(TITLE_LOADER, null, new ActionBarLoader());
         }
     }
 
@@ -149,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         @SuppressLint("SimpleDateFormat")
         @Override
         public void onLoadFinished(Loader<Cursor> l, Cursor c) {
-            ActionBar ab = getSupportActionBar();
             String d = "";
             if (c != null && c.getCount() > 0) {
                 c.moveToFirst(); // we always have only one row in the underlying table
@@ -157,7 +157,10 @@ public class MainActivity extends AppCompatActivity {
                 d = d + new SimpleDateFormat("EEE ").format(date) +
                         DateFormat.getDateFormat(MainActivity.this).format(date);
             }
-            ab.setTitle(d + " - " + currKlasse);
+            ActionBar ab = getSupportActionBar();
+            if (ab != null) {
+                ab.setTitle(d + " - " + currKlasse);
+            }
         }
 
         @Override
@@ -179,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         Account acc = getSyncAccountObj(this);
 
         AccountManager mgr = (AccountManager) getSystemService(Context.ACCOUNT_SERVICE);
-        if (mgr.getPassword(acc) == null) {
+        if (mgr != null && mgr.getPassword(acc) == null) {
             if (!mgr.addAccountExplicitly(acc, "", null)) {
                 return null;
             }

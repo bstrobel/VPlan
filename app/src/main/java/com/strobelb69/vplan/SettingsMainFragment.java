@@ -9,6 +9,11 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.strobelb69.vplan.data.VplanContract;
 
@@ -23,6 +28,7 @@ import java.util.List;
 public class SettingsMainFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String KLASSE_KURS_SEP = "~";
     private SharedPreferences sPref;
+    public final String LT = getClass().getSimpleName();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,10 +44,15 @@ public class SettingsMainFragment extends PreferenceFragment implements SharedPr
                 null,
                 VplanContract.Klassen._ID + " ASC");
         List<String> klassen = new LinkedList<>();
-        while (klCrs.moveToNext()) {
-            klassen.add(klCrs.getString(0));
+        if (klCrs != null) {
+            while (klCrs.moveToNext()) {
+                klassen.add(klCrs.getString(0));
+            }
+            klCrs.close();
+        } else {
+            Log.e(LT, "Query for \"" + VplanContract.Klassen.COL_KLASSE + "\" returned NULL!");
         }
-        klCrs.close();
+
         String[] klassenA = klassen.toArray(new String[klassen.size()]);
         prefKlasse.setEntries(klassenA); //Actual values for the setting (could be _ID for example)
         prefKlasse.setEntryValues(klassenA); //Display values
@@ -55,9 +66,14 @@ public class SettingsMainFragment extends PreferenceFragment implements SharedPr
         onSharedPreferenceChanged(sPref, getString(R.string.prefKeyDoSyncAutomatically));
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
     /*
-        Set the Summaries of the preferences according to the new Settings.
-     */
+            Set the Summaries of the preferences according to the new Settings.
+         */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences p, String k) {
         if (isAdded()) {

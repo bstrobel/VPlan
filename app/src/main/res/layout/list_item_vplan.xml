@@ -61,7 +61,7 @@
         android:minHeight="?android:attr/listPreferredItemHeight"
         android:gravity="center_vertical"
         android:id="@+id/list_item_vplan_info"
-        android:text="Bitte Ruhe im Raum. Schüler über selbständig. Keiner verlässt die Schule!"
+        android:text="Bitte Ruhe im Raum. Schüler üben selbständig. Keiner verlässt die Schule!"
         android:textSize="12sp"
         android:layout_gravity="end"
         android:layout_weight="1" />

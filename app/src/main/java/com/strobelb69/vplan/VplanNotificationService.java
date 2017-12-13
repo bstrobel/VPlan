@@ -53,7 +53,9 @@ public class VplanNotificationService extends IntentService {
 
     private void clearNotification() {
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.cancel(NOTIFICATION_ID);
+        if (nm != null) {
+            nm.cancel(NOTIFICATION_ID);
+        }
     }
 
 
@@ -102,7 +104,9 @@ public class VplanNotificationService extends IntentService {
 
                 NotificationManager nmgr =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                nmgr.notify(NOTIFICATION_ID, nb.build());
+                if (nmgr != null) {
+                    nmgr.notify(NOTIFICATION_ID, nb.build());
+                }
             }
         }
     }

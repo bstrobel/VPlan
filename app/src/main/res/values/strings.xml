@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">VPlan</string>
     <string name="action_settings">Einstellungen</string>
+    <string name="settings_kurse_actionbar_title">Belegte Kurse auswählen</string>
     <string name="vplanUrl" translatable="false">http://www.kantgym-leipzig.de/App/mobdaten/Klassen.xml</string>
 
     <string name="prefTitleKlasse">Klasse</string>

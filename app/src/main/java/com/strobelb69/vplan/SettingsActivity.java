@@ -8,9 +8,8 @@ import android.content.UriMatcher;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 /**
@@ -43,16 +42,21 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.vplan_settings_toolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         Intent intent = getIntent();
         Uri target = intent.getData();
-        Log.d(LT, "Intent for Uri " + target.toString());
+        if (target != null) {
+            Log.d(LT, "Intent for Uri " + target.toString());
+        }
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         switch (uriMatcher.match(target)) {
             case KURSE:
-                ActionBar ab = getSupportActionBar();
-                ab.setTitle(getString(R.string.prefTitleKurs));
-                ab.setSubtitle(getString(R.string.prefSubTitleKurs));
                 ft.replace(R.id.vplan_settings_avtivity, new SettingsKurseFragment());
+                getSupportActionBar().setTitle(R.string.settings_kurse_actionbar_title);
                 break;
             default:
             case MAIN:
